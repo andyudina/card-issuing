@@ -1,0 +1,20 @@
+__pycache__/*
+*.py[cod]
+
+# IntelliJ project files
+.idea
+*.idea
+out
+gen
+*.xml.
+
+# Mac/Ubuntu files
+*.*~
+*~
+*.DS_Store
+
+# VENV
+venv/
+
+# Security
+localsettings.py
