@@ -45,15 +45,6 @@ URLS:
     PARAMS: 
       - datetime_ts: int (can be null)
 
-WHAT WENT OUT OF SCOPE:
-- Security checks are not implemented nor for user nor for Schema webhook.
-  What MUST be done:
-  - Check user authorisation and permissions on every request
-  - Authenticate JSON webhook for Schema and close its location by API on front-end web server
-  - Tune base django security settings: DEBUG, ALLOWED_HOSTS etc.
-- Communications with the Schema during the settlement process is also not implemented and mocked.
-- Time zones management. We work in GMT and don't do any assumptions about users' time zone.
-
 REALISATION DETAILS:
 - I've split whole project into two web-apps: one for communication with Schema, another for interactions with user. 
   That can be a bit redundant for current purposes, but supports further growth. 
@@ -69,3 +60,19 @@ REALISATION DETAILS:
   Latest two accounts are "external" to our system, so we don't manage their amounts.
 - Currency changes are mitigated by authorizing a little bigger sum of money than requested. Overhead is defined in settings for simplicity.
 - The period of reserving sums is also defined in settings. When it ends, money are transformed from reservation account to basic one.
+
+WHAT WENT OUT OF SCOPE:
+- Security checks are not implemented nor for user nor for Schema webhook.
+  What MUST be done:
+  - Check user authorisation and permissions on every request
+  - Authenticate JSON webhook for Schema and close its location by API on front-end web server
+  - Tune base django security settings: DEBUG, ALLOWED_HOSTS etc.
+- Communications with the Schema during the settlement process is also not implemented and mocked.
+- Time zones management. We work in GMT and don't do any assumptions about users' time zone.
+- Consistency checking on errors. There are a few points in application, 
+  where we can asssume that smth could have broken our consistency.
+  For example, what if presentment transaction was created, but reserved funds were not released.
+  We should carry out integrity checks for such broken transactions periodicly and on specific event (like IntegrityError from database)
+  The checks should be done in background by celery etc.
+- Perfomance optionizations were completely skipped, but marked in TODOs
+- Only public methods of all classes were covered tests.
