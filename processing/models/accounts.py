@@ -72,9 +72,9 @@ class UserAccountsUnion(models.Model):
     def current_amounts_tuple(self):
         '''
         Tuple representation of both types of amounts that user have:
-        - available one and reserved.
+        - total amount (reserved + available) and available.
         '''
-        return (self.base_amount, self.real_amount)
+        return (self.real_amount, self.base_amount)
    
     @property
     def real_amount(self):
@@ -89,6 +89,13 @@ class UserAccountsUnion(models.Model):
         Shortcut for currently available sum
         '''
         return self._get_account_amount_by_type('b')
+
+    @property
+    def available_amount(self):
+        '''
+        More readable alias for base amount
+        '''
+        return self.base_amount
 
     @property
     def reserved_amount(self):
@@ -135,7 +142,7 @@ class UserAccountsUnion(models.Model):
         if is_in_future(date_ts): return self.current_amounts_tuple
         start_day_date = to_start_day_from_ts(date_ts)
         date = date_from_ts(date_ts)
-        if self.created_at > date: return 0
+        if self.created_at > date: return (0, 0)
         if self.created_at > start_day_date:
             # don't have any logs yet at this point
             base_amount, reserved_amount = (0, 0)
@@ -150,25 +157,23 @@ class UserAccountsUnion(models.Model):
         Find amount for particular point at time.
         Don't check weather they exists or not.
         '''
-        nearest_accounts = self.accounts.prefetch_related(
-            'account_day_log',
-            queryset = AccountDayLog.objects.filter(date__)
-        ).values(
-            'account_type', 'account_day_log__amount'
-        )
-        nearest_accounts = {account['account_type']: account['account_day_log__amount']}
+        nearest_accounts = self.accounts.filter(account_logs__date=start_day_date).\
+                                         values('account_type', 'account_logs__amount')
+        nearest_accounts = {account['account_type']: account['account_logs__amount']
+                            for account in nearest_accounts}
         return nearest_accounts.get('b', 0), nearest_accounts.get('r', 0)
 
-    def _roll_forward_in_time_range(self, start_day_date, date):
+    def _roll_forward_in_time_range(self, begin_date, end_date):
         '''
         Calculates the result of all transfers in given time period
         for all linked accounts
         '''
+
         transfer_diffs = Transfer.objects.\
-            filter(transaction__created_at__range=[start_day_date, date]).\
+            filter(transaction__created_at__range=[begin_date, end_date]).\
             filter(account_id__in=[a.id for a in self.accounts.all()]).\
             values('account__account_type').\
-            aggregate(amount_diff = Sum('amount'))
+            annotate(amount_diff = models.Sum('amount'))
         transfer_diffs = {t['account__account_type']:t['amount_diff'] for t in transfer_diffs}
         return transfer_diffs.get('b', 0), transfer_diffs.get('r', 0)
         

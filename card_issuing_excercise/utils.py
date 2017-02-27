@@ -38,3 +38,12 @@ def datetime_to_timestamp(dt):
     '''
     return time.mktime(dt.timetuple())
 
+# TODO: refactor layout
+def almost_equal(value_1, value_2, accuracy=10**-4, precision=4):
+    '''
+    Helper for compairing decimals.
+    Used in custom assertIn for unit tests
+    '''
+    return abs(
+        round(value_1, precision) - round(value_2, precision)) < accuracy
+

@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models, \
                       transaction, IntegrityError
 
@@ -55,7 +57,7 @@ class TransactionManager(models.Manager):
         '''
         from_account, to_account = self._validate_base_accounts(**accounts)
         amount_for_reserve = self.get_amount_for_reserve(amount)
-        if from_account.available_amount < amount_for_reserve:
+        if from_account.amount < amount_for_reserve:
             # decline
             try:
                 self.create(code=code, status=TRANSACTION_MONEY_SHORTAGE_STATUS)
@@ -63,9 +65,9 @@ class TransactionManager(models.Manager):
                 pass
             raise IssuerTransactionError('not_enough_money')
         try:
-            self._create_with_transfer(from_acount=from_account, to_account=to_account,
-                                       code=code, status=TRANSACTION_AUTHORIZATION_STATUS, 
-                                       amount=amount_for_reserve)
+            return self._create_with_transfer(from_account=from_account, to_account=to_account,
+                                              code=code, status=TRANSACTION_AUTHORIZATION_STATUS, 
+                                              amount=amount_for_reserve)
         except IntegrityError: # transaction have already been processed
             raise IssuerTransactionError('already_done')
 
@@ -78,19 +80,22 @@ class TransactionManager(models.Manager):
         - from_account
         - to_account
         - extra_account. -- account to which difference btw billable and settlement will be transfered
+
+        Returns presented transaction, not rollbacked one.
         '''
         # TODO: in real production all changes in account amounts should be bulked. 
         # It's better to bulk them on lower level, mb custom extention for connector, 
         # and let code on higher levels of abstractions call rollbacks and presentment methods one by one.
         from_account, to_account = self._validate_base_accounts(**accounts)
         amount_diff = billable_amount - settlement_amount
-        if amount_diff != 0 and not accounts.get('extra_account'):
+        extra_account = accounts.get('extra_account')
+        if amount_diff != 0 and not extra_account:
             raise ValueError('Extra account needed')
         try:
             # TODO: checks for transactions "sanity" should be placed here
             # from_account should be equal from_account 
             rollback_transaction = self._rollback(code)
-        except DoesNotExist:
+        except Transaction.DoesNotExist:
             # there was no authorisation transaction
             raise IssuerTransactionError('already_done')
         except IntegrityError:
@@ -99,23 +104,25 @@ class TransactionManager(models.Manager):
             # What if transactions was rollback, but was not presented?
             raise IssuerTransactionError('already_done')
         try:
-            transaction = self._create_with_transfer(from_acount=from_account, to_account=to_account,
-                                       code=code, status=TRANSACTION_PRESETMENT_STATUS, amount=billable_amount)
+            presntment_transaction = self._create_with_transfer(
+                from_account=from_account, to_account=to_account,
+                code=code, status=TRANSACTION_PRESETMENT_STATUS, amount=settlement_amount)
         except IntegrityError:
             # rollback was not done but presentment transaction was created
             # TODO: should definetly go through consistency checking
             raise IssuerTransactionError('already_done')
         
-        if not amount_diff: return
+        if not amount_diff: return presntment_transaction
         # Transfer amount difference to extra_account
-        transaction.add_transfer(from_account, extra_account, amount_diff)
+        presntment_transaction.add_transfer(from_account, extra_account, amount_diff)
+        return presntment_transaction
 
     def rollback_late_presentment(self, code):
         '''
         Rollback transaction which was late for presentment
         '''
         try:
-            return self._rollback(code, status=TRANSACTION_PRESENTMANT_IS_TOO_LATE_STATUS)
+            return self._rollback(code, TRANSACTION_PRESENTMANT_IS_TOO_LATE_STATUS)
         except IntegrityError:
             pass # ok if already rollbacked
 
@@ -131,8 +138,9 @@ class TransactionManager(models.Manager):
                                              values_list('code', flat=True)
         completed_transaction_codes = self.filter(status=TRANSACTION_PRESETMENT_STATUS, code__in=authorized_transactions_codes).\
                                       values_list('code', flat=True)
-        completed_transaction_codes = {t.code: 1 for code in completed_transaction_codes}
-        return filter(lambda code: completed_transactions.get(code) is None, authorized_transactions_codes)
+        completed_transaction_codes = {code: 1 for code in completed_transaction_codes}
+        return filter(lambda code: completed_transaction_codes.get(code) is None, 
+                      authorized_transactions_codes)
 
 
     def get_amount_for_reserve(self, amount):
@@ -163,13 +171,13 @@ class TransactionManager(models.Manager):
         '''
         from_account, to_account = self._validate_base_accounts(**kwargs)
         amount  = kwargs.get('amount')
-        if not amount: raise ValueError('"amount" kwarg is required')
+        if amount is None: raise ValueError('"amount" kwarg is required')
         for key in ['from_account', 'to_account', 'amount']:
             del kwargs[key]
         with transaction.atomic(): # for correct Integrity error processing
-            transaction = self.create(*args, **kwargs)
-        transaction.add_transfer(from_account, to_account, amount)
-        return transaction
+            issuer_transaction = self.create(*args, **kwargs)
+        issuer_transaction.add_transfer(from_account, to_account, amount)
+        return issuer_transaction
 
     @transaction.atomic
     def _rollback(self, code, rollback_status=TRANSACTION_ROLLBACKED_STATUS):
@@ -180,7 +188,7 @@ class TransactionManager(models.Manager):
         '''
         authorization_transaction = self.get(status=TRANSACTION_AUTHORIZATION_STATUS, code=code)
         with transaction.atomic():
-            rollback_transaction = self.create(code=code, rollback_status=rollback_status)
+            rollback_transaction = self.create(code=code, status=rollback_status)
         # Don't use select_for_update here as it is redundant:
         # Our authorisation system proved that account has enough money already
         for transfer in authorization_transaction.transfers.select_related('account').all():
@@ -201,14 +209,14 @@ class Transaction(models.Model):
     objects = TransactionManager()
 
     @transaction.atomic
-    def add_transafer(self, from_account, to_account, amount):
+    def add_transfer(self, from_account, to_account, amount):
         '''
         Transfers sum from one account to another in one database transaction
         '''
-        self._transfer_amount(to_account, amount)
-        self._transfer_amount(from_account, -amount)
+        self.transfer_amount(to_account, amount)
+        self.transfer_amount(from_account, -amount)
     
-    def _transfer_amount(self, account, amount):
+    def transfer_amount(self, account, amount):
         '''
         Helper for saving transfer for one participant
         '''

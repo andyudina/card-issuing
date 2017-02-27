@@ -118,6 +118,6 @@ class GetUserBalance(CreateAccountMixin, CreateTransactionMixin, TestCase):
     def test__get_past_balance_for_first_usage_day(self):
         self.assertEqual(
             self.user_account.get_amounts_for_ts(
-                datetime_to_timestamp(self.day_before_yesterday + datetime.timedelta(hours=2))
+                datetime_to_timestamp(self.day_before_yesterday + datetime.timedelta(hours=4))
             ),
             (15.0, 12.5))
