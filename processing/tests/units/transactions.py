@@ -7,9 +7,9 @@ from processing.models.transactions import Transaction, IssuerTransactionError, 
                                            TRANSACTION_PRESETMENT_STATUS, \
                                            TRANSACTION_PRESENTMANT_IS_TOO_LATE_STATUS, \
                                            TRANSACTION_AUTHORIZATION_STATUS
-from processing.tests.units.utils import CreateAccountMixin, \
-                                         CreateTransactionMixin, \
-                                         TestTransactionMixin
+from card_issuing_excercise.utils.tests import CreateAccountMixin, \
+                                               CreateTransactionMixin, \
+                                               TestTransactionMixin
 
 
 # TODO: more precise test checks in presentment transactions:
@@ -23,6 +23,7 @@ from processing.tests.units.utils import CreateAccountMixin, \
 # - cover get_amount_for_reserve  with tests
 # - should we sum all deductions insde one transaction?
 # - obj setUp or class setUp?
+# - consistent layput: close braces on the same line
 class TransactionTransferManagement(CreateAccountMixin, CreateTransactionMixin, 
                                     TestTransactionMixin, TestCase):
 

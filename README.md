@@ -33,14 +33,14 @@ URLS:
        - settlement_amount: string (can be null)
 
   2. Trasactions for user
-    URI:    /user/(?P<user_id>\d+)/transactions/
+    URI:    /user/(?P\<user_id\>\d+)/transactions/
     METHOD: GET
     PARAMS:
       - begin_ts: int (can be null)
       - end_ts: int (cab be null)
 
   3. Balance for user
-    URI:    /user/(?P<user_id>\d+)/balance/
+    URI:    /user/(?P\<user_id\>\d+)/balance/
     METHOD: GET
     PARAMS: 
       - datetime_ts: int (can be null)
