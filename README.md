@@ -76,3 +76,11 @@ WHAT WENT OUT OF SCOPE:
   The checks should be done in background by celery etc.
 - Perfomance optionizations were completely skipped, but marked in TODOs
 - Only public methods of all classes were covered tests.
+
+ROADMAP:
+28.02:
+- views + management commands + tests
+01.03:
+- currency subsystem mock + tests + descriptions to transactions + tests refactoring
+02.03
+- core models refactoring + lint + grammar checks
