@@ -35,7 +35,7 @@ class GetUserBalanceTestCase(CreateAccountMixin, TestCase):
             '/api/v1/user/{}/balance/'.format(kwargs.get('user_id'), self.user_account.user_id),
             *args)
         if not kwargs.get('skip_auth'):
-            force_authenticate(request, self.account_user.user)
+            force_authenticate(request, self.user_account.user)
         return BalanceView.as_view()(request)
 
     ##
@@ -62,8 +62,8 @@ class GetUserBalanceTestCase(CreateAccountMixin, TestCase):
 
     def test__non_authenticated_user__got_403(self):
         response = self.get_user_balance_by_request(skip_auth=True)
-        self.self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)     
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)     
    
     def test__non_authorized_user__got_403(self):
         response = self.get_user_balance_by_request(user_id=self.user_account.user_id + 1)
-        self.self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

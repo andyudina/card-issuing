@@ -37,10 +37,13 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
         Helper for transaction creation using API
         '''
         request_factory = APIRequestFactory()
+        schema_params = {
+            'amount': self.transfer_amount, 
+            'account_id': self.user_account.id,  
+        }
+        schema_params.update(kwargs)
         request = request_factory.post('/api/v1/request/',
-            self.create_schema_request(amount=self.transaction_amount, 
-                                       account_id=self.user_account.id,
-                                       **kwargs))
+            self.create_schema_request(**schema_params))
         return SchemaWebHook.as_view()(request)
 
     def create_duplicate_transaction_by_request(self):
@@ -49,13 +52,13 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
         '''
         transaction_code = 'DUBLE'
         self.create_transaction(code=transaction_code, status=TRANSACTION_AUTHORIZATION_STATUS)
-        return self.create_authorization_transaction(transaction_code=transaction_code)
+        return self.create_authorization_transaction_by_request(transaction_code=transaction_code)
 
     def create_not_enough_money_transaction_by_request(self):
         '''
         Helper for creating transaction wich requests more money, than user has.
         '''
-        return self.create_authorization_transaction(amount=self.base_amount * 2)
+        return self.create_authorization_transaction_by_request(amount=self.base_amount * 2)
 
     ##
     # Test methods
@@ -76,7 +79,7 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
                                       self.transfer_amount)
 
     def test__invalid_user_request__retcode(self):
-        response = self.create_authorization_transaction(account_id='INVALID')
+        response = self.create_authorization_transaction_by_request(account_id='INVALID')
         self.assertEqual(response.status_code, status.HTTP_424_FAILED_DEPENDANCY)
 
     def test__duplicate_transaction__retcode(self):

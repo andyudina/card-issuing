@@ -192,7 +192,7 @@ class TestTransactionAPIMixin(TestTransactionMixin):
             'billing_currency': kwargs.get('currency', 'EUR'),
             'transaction_amount': kwargs.get('transaction_amount', 10.0),
             'transaction_curreny': kwargs.get('transaction_currency', 'EUR'),
-            **extra_requst_params
+            **extra_request_params
         }
         self._amounts_to_str_inplace(schema_request)
         return schema_request

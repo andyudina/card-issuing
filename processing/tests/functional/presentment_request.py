@@ -54,11 +54,15 @@ class PresentmentRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
         Helper for presentment transaction creation using API
         '''
         request_factory = APIRequestFactory()
+        schema_params = {
+            'type': 'presentment', 
+            'account_id': self.sender_account.id,
+            'transaction_code': self.authorization_transaction.code,
+            'amount': self.transfer_amount,
+        }
+        schema_params.update(kwargs)
         request = request_factory.post('/api/v1/request/',
-            self.create_schema_request(type='presentment', 
-                                       account_id=self.sender_account.id,
-                                       transaction_code=self.authorization_transaction.code,
-                                       amount=self.transfer_amount, **kwargs))
+            self.create_schema_request(**schema_params))
         return SchemaWebHook.as_view()(request)
 
     def test__valid_presentment_request__retcode(self):

@@ -4,11 +4,11 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from processing.models.transactions import Transaction, \
-                                           TRANSACTION_PRESETMENT_STATUS
+                                           TRANSACTION_PRESENTMENT_STATUS
 from card_issuing_excercise.utils.tests import CreateAccountMixin, \
                                                CreateTransactionMixin, \
                                                TestTransactionMixin
-from card_issuing_exercise.settings import AUTHORISATION_TRANSACTION_TTL
+from card_issuing_excercise.settings import AUTHORISATION_TRANSACTION_TTL
 
 
 #TODO: remove unnesessary calls from setUp
@@ -36,7 +36,7 @@ class SettlementTestCase(CreateAccountMixin, CreateTransactionMixin,
             amount=self.transfer_amount)
         self.presentment_transaction = self.create_transaction(
             code=self.transaction.code, amount=self.transfer_amount,
-            status=TRANSACTION_PRESETMENT_STATUS,
+            status=TRANSACTION_PRESENTMENT_STATUS,
             from_account=self.sender_account.base_account,
             to_account=self.settlement_account.base_account,
         )

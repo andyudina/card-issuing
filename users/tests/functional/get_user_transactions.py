@@ -71,7 +71,7 @@ class GetUserTransactionsTestCase(CreateAccountMixin,
                 'has_prev_page': False,
                 'pg': 2,
                 'transactions': [],
-                'transactions_per_page': TRANSACTIONS_PER_PAGE
+                'transactions_per_page': TRANSACTIONS_PER_PAGE,
                 'transactions_number': 0,
             }) 
         
@@ -88,11 +88,11 @@ class GetUserTransactionsTestCase(CreateAccountMixin,
                          'created_at': datetime_to_ts(self.presentment_transaction.created_at),
                          'id': self.presentment_transaction.id,
                          'transfers': [
-                             'amount': self.transfer_amount
+                             {'amount': self.transfer_amount}
                          ]
                      }
                  ],
-                'transactions_per_page': TRANSACTIONS_PER_PAGE
+                'transactions_per_page': TRANSACTIONS_PER_PAGE,
                 'transactions_number': 1,
             })
 
