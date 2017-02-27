@@ -9,7 +9,7 @@ from card_issuing_excercise.settings import AUTHORISATION_OVERHEAD
 TRANSACTION_ID_LENGTH = 9
 
 TRANSACTION_AUTHORIZATION_STATUS = 'a'
-TRANSACTION_PRESETMENT_STATUS = 'p'
+TRANSACTION_PRESENTMENT_STATUS = 'p'
 TRANSACTION_MONEY_SHORTAGE_STATUS = 's'
 TRANSACTION_PRESENTMANT_IS_TOO_LATE_STATUS = 't'
 TRANSACTION_ROLLBACKED_STATUS = 'r'
@@ -17,7 +17,7 @@ TRANSACTION_LOAD_MONEY_STATUS = 'l'
 
 TRANSACTION_STATUS_CHOICES = (
     (TRANSACTION_AUTHORIZATION_STATUS,           'Authorization'),
-    (TRANSACTION_PRESETMENT_STATUS,              'Presentment'),
+    (TRANSACTION_PRESENTMENT_STATUS ,              'Presentment'),
     # transaction declined because of money shortage
     (TRANSACTION_MONEY_SHORTAGE_STATUS,          'Money shortage'),   
     # transaction declined because there was no presentment during T + 1 day           
@@ -106,7 +106,7 @@ class TransactionManager(models.Manager):
         try:
             presntment_transaction = self._create_with_transfer(
                 from_account=from_account, to_account=to_account,
-                code=code, status=TRANSACTION_PRESETMENT_STATUS, amount=settlement_amount)
+                code=code, status=TRANSACTION_PRESENTMENT_STATUS, amount=settlement_amount)
         except IntegrityError:
             # rollback was not done but presentment transaction was created
             # TODO: should definetly go through consistency checking
@@ -136,7 +136,7 @@ class TransactionManager(models.Manager):
             created_before_dt]
         authorized_transactions_codes = self.filter(created_at__range=filter_range, status=TRANSACTION_AUTHORIZATION_STATUS).\
                                              values_list('code', flat=True)
-        completed_transaction_codes = self.filter(status=TRANSACTION_PRESETMENT_STATUS, code__in=authorized_transactions_codes).\
+        completed_transaction_codes = self.filter(status=TRANSACTION_PRESENTMENT_STATUS, code__in=authorized_transactions_codes).\
                                       values_list('code', flat=True)
         completed_transaction_codes = {code: 1 for code in completed_transaction_codes}
         return filter(lambda code: completed_transaction_codes.get(code) is None, 

@@ -5,10 +5,9 @@ from django.test import TestCase
 from processing.models.accounts import UserAccountsUnion
 from processing.models.transactions import TRANSACTION_AUTHORIZATION_STATUS, \
                                     TRANSACTION_LOAD_MONEY_STATUS
-from processing.tests.units.utils import CreateAccountMixin, \
-                                         CreateTransactionMixin
 from card_issuing_excercise.utils import datetime_to_timestamp, to_start_day
-
+from card_issuing_excercise.utils.tests import CreateAccountMixin, \
+                                               CreateTransactionMixin
 
 class CreateNewAccTestCase(CreateAccountMixin, TestCase):
 

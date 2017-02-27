@@ -1,5 +1,8 @@
 from django.views.generic.base import View
 
+
+TRANSACTIONS_PER_PAGE = 20
+
 class TransactionsView(View):
     '''
         Repsresents all presentment transactions for particular user in  a given time range.

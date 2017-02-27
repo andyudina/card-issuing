@@ -4,12 +4,12 @@ import decimal
 from django.test import TestCase
 
 from processing.models.transactions import Transaction, IssuerTransactionError, \
-                                           TRANSACTION_PRESETMENT_STATUS, \
+                                           TRANSACTION_PRESENTMENT_STATUS, \
                                            TRANSACTION_PRESENTMANT_IS_TOO_LATE_STATUS, \
                                            TRANSACTION_AUTHORIZATION_STATUS
-from processing.tests.units.utils import CreateAccountMixin, \
-                                         CreateTransactionMixin, \
-                                         TestTransactionMixin
+from card_issuing_excercise.utils.tests import CreateAccountMixin, \
+                                               CreateTransactionMixin, \
+                                               TestTransactionMixin
 
 
 # TODO: more precise test checks in presentment transactions:
@@ -23,6 +23,7 @@ from processing.tests.units.utils import CreateAccountMixin, \
 # - cover get_amount_for_reserve  with tests
 # - should we sum all deductions insde one transaction?
 # - obj setUp or class setUp?
+# - consistent layput: close braces on the same line
 class TransactionTransferManagement(CreateAccountMixin, CreateTransactionMixin, 
                                     TestTransactionMixin, TestCase):
 
@@ -167,7 +168,7 @@ class PresentmentTransaction(CreateAccountMixin, CreateTransactionMixin,
     def test__transaction_is_already_done(self):
         self.create_transaction(
             code=self.transaction.code, amount=self.transfer_sum,
-            status=TRANSACTION_PRESETMENT_STATUS,
+            status=TRANSACTION_PRESENTMENT_STATUS,
             from_account=self.user_account_1.base_account,
             to_account=self.user_account_2.base_account,
         )
@@ -211,7 +212,7 @@ class RollbackNonPresentmentTransaction(CreateAccountMixin, CreateTransactionMix
         # create representment transaction
         cls.create_transaction(
             code=cls.transactions[0].code,
-            status=TRANSACTION_PRESETMENT_STATUS,
+            status=TRANSACTION_PRESENTMENT_STATUS,
             amount=cls.transfer_sum)
         cls.not_presented_transaction_codes = {transaction.code: 1 for transaction in cls.transactions[1:]}
         cls.base_sum_after_initial_transactions = cls.base_sum - cls.transactions_number * cls.transfer_sum

@@ -34,6 +34,9 @@ class CreateAccountMixin:
 
     @classmethod
     def create_account(cls, created_at=None):
+        '''
+        Create basic account without any money saved
+        '''
         user = cls.create_user()
         account_id = get_random_string_for_test()
         account = UserAccountsUnion.objects.create(user=user, id=account_id)
@@ -44,6 +47,9 @@ class CreateAccountMixin:
 
     @classmethod
     def create_account_with_amount(cls, created_at=None):
+        '''
+        Create basic account with money already loaded.
+        '''
         base_amount = 10.0
         user_account = cls.create_account(created_at)
         Account.objects.filter(id=user_account.base_account.id).\
@@ -51,6 +57,29 @@ class CreateAccountMixin:
         user_account.base_account.refresh_from_db()
         return user_account
 
+    @classmethod
+    def create_revenue_account(cls, created_at=None):
+        '''
+        Helper for creating special account for collecting revenue.
+        '''
+        return cls.create_special_account('revenue')
+
+    @classmethod
+    def create_settlement_account(cls, created_at=None):
+        '''
+        Helper for creating special account for collecting debts to the Schema.
+        '''
+        return cls.create_special_account('settlement')
+
+    @classmethod
+    def create_special_account(cls, role, created_at=None):
+        '''
+        Creates special account (settlement, revenue, or "extra"
+        '''
+        account = cls.create_account(created_at)
+        account.role = role
+        account.save(update_fields=['role'])
+        return account
 
 class CreateTransactionMixin:
 
@@ -130,7 +159,48 @@ class TestTransactionMixin(DecimalAssertionsMixin):
         transfer_sums = Transfer.objects.filter(transaction_id=transaction_id, account_id=account_id).\
                                     values_list('amount', flat=True)
         self.assertAlmostIn(transfer_sum, transfer_sums)
-        #self.assertAlmostEqual(transfer.amount, decimal.Decimal(transfer_sum), 
-        #                       places=AMOUNT_PRECISION_SETTINGS.get('decimal_places'))
 
 
+EXTRA_SCHEMA_REQUEST_KEYS = ['settlement_amount', 'settlement_currency']
+
+class TestTransactionAPIMixin(TestTransactionMixin):
+    
+    '''
+    Mixin for testing transaction API.
+    '''
+
+    def create_schema_request(self, **kwargs):
+        '''
+        Generates dictionary with transaction parameters, 
+        which is used by schema web hook.
+        '''
+        # TODO: what happens when transfer reciever is another our client?
+        # TODO: how currency are managed? 
+        # are transactions saved in one base currency and who is responsible for exchange?
+        extra_request_params = {
+            key: kwargs.get(key) for key in EXTRA_SCHEMA_REQUEST_KEYS
+            if kwargs.get(key)
+        }
+        schema_request = {
+            'type': kwargs.get('type', 'authorization'),
+            'card_id': kwargs.get('account_id', 'TEST'),
+            'transaction_id': kwargs.get('transaction_code', 'TEST'),
+            'merchant_name': kwargs.get('merchant_name', 'Test merchant'),
+            'merchant_country': kwargs.get('merchant_country', 'US'),
+            'merchant_mcc': kwargs.get('merchant_mcc', '1111'),
+            'billing_amount': kwargs.get('amount', 10.00),
+            'billing_currency': kwargs.get('currency', 'EUR'),
+            'transaction_amount': kwargs.get('transaction_amount', 10.0),
+            'transaction_curreny': kwargs.get('transaction_currency', 'EUR'),
+            **extra_request_params
+        }
+        self._amounts_to_str_inplace(schema_request)
+        return schema_request
+
+    def _amounts_to_str_inplace(self, schema_request):
+        '''
+        Transforming values of all amount keys to str with 2 decimal places
+        '''
+        for key in schema_request.keys():
+            if 'amount' in key:
+                schema_request[key] = '.%2f' % schema_request[key]
