@@ -107,8 +107,8 @@ class UserAccountManager(models.Manager):
     def create_external_load_money_account(self):
         return self.create_special_account(EXTERNAL_LOAD_MONEY_ACCOUNT_ROLE)
 
-    def create_extra_settlement_account(self):
-        return self.create_special_account(INNER_SETTLEMENT_ACCOUNT_ROLE)
+    def create_external_settlement_account(self):
+        return self.create_special_account(EXTERNAL_SETTLEMENT_ACCOUNT_ROLE )
 
     def create_revenue_account(self):
         return self.create_special_account(REVENUE_ACCOUNT_ROLE)
@@ -147,8 +147,8 @@ class UserAccountManager(models.Manager):
     def get_external_load_money_account(self):
         return self.get_special_account_or_none(EXTERNAL_LOAD_MONEY_ACCOUNT_ROLE)
 
-    def get_extra_settlement_account(self):
-        return self.get_special_account_or_none(INNER_SETTLEMENT_ACCOUNT_ROLE)
+    def get_external_settlement_account(self):
+        return self.get_special_account_or_none(EXTERNAL_SETTLEMENT_ACCOUNT_ROLE)
 
     def get_revenue_account(self):
         return self.get_special_account_or_none(REVENUE_ACCOUNT_ROLE)

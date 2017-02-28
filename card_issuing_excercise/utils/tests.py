@@ -58,18 +58,32 @@ class CreateAccountMixin:
         return user_account
 
     @classmethod
-    def create_revenue_account(cls, created_at=None):
+    def create_revenue_account(cls):
         '''
         Helper for creating special account for collecting revenue.
         '''
         return UserAccountsUnion.objects.create_revenue_account()
 
     @classmethod
-    def create_settlement_account(cls, created_at=None):
+    def create_settlement_account(cls):
         '''
         Helper for creating special account for collecting debts to the Schema.
         '''
         return UserAccountsUnion.objects.create_inner_settlement_account()
+
+    @classmethod
+    def create_external_settlement_account(cls):
+        '''
+        Helper for creating special account for collecting debts to the Schema.
+        '''
+        return UserAccountsUnion.objects.create_external_settlement_account()
+
+    @classmethod
+    def create_load_money_account(cls):
+        '''
+        Helper for creating special account for loading money to user account.
+        '''
+        return UserAccountsUnion.objects.create_external_load_money_account()
 
     @classmethod
     def create_root_user(self):

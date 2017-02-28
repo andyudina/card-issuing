@@ -6,6 +6,8 @@ from card_issuing_excercise.utils.tests import CreateAccountMixin, \
 
 # TODO: embedd currency exchange into architecture!
 # TODO: cover currency exchange with tests!
+# TODO: create accounts on the flight?
+# TODO: to many errors without it
 class LoadMoneyCommandTestCase(CreateAccountMixin,
                                TestTransactionMixin, TestCase):
    
@@ -16,11 +18,13 @@ class LoadMoneyCommandTestCase(CreateAccountMixin,
 
     def setUp(self):
         self.user_account = self.create_account()
+        self.create_root_user()
+        self.create_load_money_account()
     
     def test__user_base_amount_increased(self):
         load_money_amount = 10.0
         call_command('load_money', self.user_account.id, load_money_amount, 'EUR')
         self.check_account_result_sum(
-            self.sender_account.base_account.id, load_money_amount)
+            self.user_account.base_account.id, load_money_amount)
 
 

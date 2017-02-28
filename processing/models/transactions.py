@@ -11,10 +11,11 @@ TRANSACTION_ID_LENGTH = 9
 
 TRANSACTION_AUTHORIZATION_STATUS = 'a'
 TRANSACTION_PRESENTMENT_STATUS = 'p'
-TRANSACTION_MONEY_SHORTAGE_STATUS = 's'
+TRANSACTION_MONEY_SHORTAGE_STATUS = 'z' # z for zero ;)
 TRANSACTION_PRESENTMANT_IS_TOO_LATE_STATUS = 't'
 TRANSACTION_ROLLBACKED_STATUS = 'r'
 TRANSACTION_LOAD_MONEY_STATUS = 'l'
+TRANSACTION_SETTLEMENT_STATUS = 's'
 
 TRANSACTION_STATUS_CHOICES = (
     (TRANSACTION_AUTHORIZATION_STATUS,           'Authorization'),
@@ -27,7 +28,9 @@ TRANSACTION_STATUS_CHOICES = (
     (TRANSACTION_ROLLBACKED_STATUS,              'Rollback'),                    
     # special transaction for loading money, 
     # don't need authorisation - presentment scheme
-    (TRANSACTION_LOAD_MONEY_STATUS,              'Load money'),                  
+    (TRANSACTION_LOAD_MONEY_STATUS,              'Load money'),             
+    # special status for logging transfering our debt to Schema     
+    (TRANSACTION_SETTLEMENT_STATUS,              'Settle day transactions'),
 )
 
 class IssuerTransactionError(ValueError):
@@ -132,8 +135,40 @@ class TransactionManager(models.Manager):
         '''
         try:
             return self._rollback(code, TRANSACTION_PRESENTMANT_IS_TOO_LATE_STATUS)
+            print('ok')
         except IntegrityError:
             pass # ok if already rollbacked
+      
+    #TODO: cover with tests
+    def settle_day_transactions(self, amount, from_account, to_account):
+        '''
+        Logs day settlement as our inner transfers
+        '''
+        code = self.get_code_for_date_and_status(TRANSACTION_SETTLEMENT_STATUS)
+        return self._create_with_transfer(from_account=from_account, to_account=to_account,
+                                          code=code, status=TRANSACTION_SETTLEMENT_STATUS,
+                                          amount=amount)
+
+    #TODO: cover with tests
+    def load_money(self, amount, from_account, to_account):
+        '''
+        Logs loading money as transfering some "external" account
+        '''
+        code = self.get_code_for_date_and_status(TRANSACTION_LOAD_MONEY_STATUS)
+        print(to_account)
+        print(amount)
+        return self._create_with_transfer(from_account=from_account, to_account=to_account,
+                                          code=code, status=TRANSACTION_LOAD_MONEY_STATUS,
+                                          amount=amount)
+
+    #TODOL cover with tests
+    def get_code_for_date_and_status(self, status):
+        '''
+        Helper for generating unique code for our "service" transactions
+        like transfering settlements or loading money
+        '''
+        today = datetime.date.today()
+        return ''.join([status.upper(), today.strftime('%Y%m%d')])
 
     #TODO: need perfomace optimization. Though its not critical as runs at the background
     def get_non_presented_transactions_before(self, created_before_dt):
