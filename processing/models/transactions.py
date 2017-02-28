@@ -1,4 +1,5 @@
 import datetime
+import decimal
 
 from django.db import models, \
                       transaction, IntegrityError
@@ -92,10 +93,12 @@ class TransactionManager(models.Manager):
         # TODO: in real production all changes in account amounts should be bulked. 
         # It's better to bulk them on lower level, mb custom extention for connector, 
         # and let code on higher levels of abstractions call rollbacks and presentment methods one by one.
+        billable_amount = decimal.Decimal(billable_amount)
+        settlement_amount = decimal.Decimal(settlement_amount)
         from_account, to_account = self._validate_base_accounts(**accounts)
         amount_diff = billable_amount - settlement_amount
         extra_account = accounts.get('extra_account')
-        if amount_diff != 0 and not extra_account:
+        if billable_amount != settlement_amount and not extra_account:
             raise ValueError('Extra account needed')
         try:
             # TODO: checks for transactions "sanity" should be placed here
@@ -153,7 +156,7 @@ class TransactionManager(models.Manager):
         '''
         Calculates real ammount that have to be stored including overhead
         '''
-        return amount * (100 + AUTHORISATION_OVERHEAD) / 100
+        return decimal.Decimal(amount) * decimal.Decimal((100 + AUTHORISATION_OVERHEAD) / 100)
 
     def _validate_base_accounts(self, **accounts):
         '''

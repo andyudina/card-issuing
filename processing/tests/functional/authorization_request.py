@@ -4,7 +4,8 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
 
-from processing.models.transactions import TRANSACTION_AUTHORIZATION_STATUS
+from processing.models.transactions import Transaction, \
+                                           TRANSACTION_AUTHORIZATION_STATUS
 from processing.views import SchemaWebHook 
 from card_issuing_excercise.utils.tests import CreateAccountMixin,\
                                                CreateTransactionMixin, \
@@ -27,7 +28,8 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
         self.base_amount = self.user_account.base_account.amount
         self.reserved_amount = self.user_account.reserved_account.amount
         self.transfer_amount = decimal.Decimal(0.5) * self.base_amount
-
+        self.real_transfer_amount = Transaction.objects.get_amount_for_reserve(
+                                                        self.transfer_amount)
     ##
     # Helper methods
     ##
@@ -52,7 +54,8 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
         Helper for duplicationg transaction using API
         '''
         transaction_code = 'DUBLE'
-        self.create_transaction(code=transaction_code, status=TRANSACTION_AUTHORIZATION_STATUS)
+        self.create_transaction(code=transaction_code, 
+                                status=TRANSACTION_AUTHORIZATION_STATUS)
         return self.create_authorization_transaction_by_request(transaction_code=transaction_code)
 
     def create_not_enough_money_transaction_by_request(self):
@@ -72,12 +75,12 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
     def test__valid_authorization_request__base_amount_deducted(self):
         response = self.create_authorization_transaction_by_request()
         self.check_account_result_sum(self.user_account.base_account.id,
-                                      self.base_amount - self.transfer_amount)
+                                      self.base_amount - self.real_transfer_amount)
 
     def test__valid_authorization_request__reserved_amount_increased(self):
         response = self.create_authorization_transaction_by_request()
         self.check_account_result_sum(self.user_account.reserved_account.id,
-                                      self.transfer_amount)
+                                      self.real_transfer_amount)
 
     def test__invalid_user_request__retcode(self):
         response = self.create_authorization_transaction_by_request(account_id='INVALID')
@@ -95,7 +98,7 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
 
     def test__duplicate_transaction__reserved_amount_not_modified(self):
         self.create_duplicate_transaction_by_request()
-        self.check_account_result_sum(self.user_account.base_account.id,
+        self.check_account_result_sum(self.user_account.reserved_account.id,
                                       self.reserved_amount)
 
     def test__not_enough_money__retcode(self):
@@ -109,7 +112,7 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
 
     def test__not_enough_money__reserved_amount_not_modified(self):
         self.create_not_enough_money_transaction_by_request()
-        self.check_account_result_sum(self.user_account.base_account.id,
+        self.check_account_result_sum(self.user_account.reserved_account.id,
                                       self.reserved_amount)
 
 

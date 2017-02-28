@@ -29,17 +29,17 @@ class CreateNewAccTestCase(CreateAccountMixin, TestCase):
         self._test_account_has_proper_links_number(account, 2)
 
     def test__create_special_account__success(self):
-        self._create_root_user()
+        self.create_root_user()
         account = self._create_revenue_account()
         self.assertEqual(account.role, REVENUE_ACCOUNT_ROLE)
  
     def test__create_special_account__owned_by_superuser(self):
-        self._create_root_user()
+        self.create_root_user()
         account = self._create_revenue_account()
         self.assertEqual(account.user.username, 'root')
 
     def test__create_duplicate_special_account__new_not_created(self):
-        self._create_root_user()
+        self.create_root_user()
         self._create_revenue_account()
         self._create_revenue_account()
         self.assertEqual(
@@ -64,9 +64,6 @@ class CreateNewAccTestCase(CreateAccountMixin, TestCase):
     def _create_revenue_account(self):
         return UserAccountsUnion.objects.\
                                  create_special_account(REVENUE_ACCOUNT_ROLE)
-
-    def _create_root_user(self):
-        User.objects.create_superuser('root', 'root', 'root')
 
 
 class GetAccountForUpdate(CreateAccountMixin, TestCase):

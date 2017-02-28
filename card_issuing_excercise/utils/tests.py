@@ -71,6 +71,13 @@ class CreateAccountMixin:
         '''
         return UserAccountsUnion.objects.create_inner_settlement_account()
 
+    @classmethod
+    def create_root_user(self):
+        '''
+        Helper for supreuser creation
+        '''
+        User.objects.create_superuser('root', 'root', 'root')
+
 
 class CreateTransactionMixin:
 
@@ -183,8 +190,8 @@ class TestTransactionAPIMixin(TestTransactionMixin):
             'billing_currency': kwargs.get('currency', 'EUR'),
             'transaction_amount': kwargs.get('transaction_amount', 10.0),
             'transaction_curreny': kwargs.get('transaction_currency', 'EUR'),
-            **extra_request_params
         }
+        schema_request.update(extra_request_params)
         self._amounts_to_str_inplace(schema_request)
         return schema_request
 

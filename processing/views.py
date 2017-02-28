@@ -10,6 +10,8 @@ from processing.models.transactions import IssuerTransactionError
 from processing.serializers import SchemaRequestSerializer
 
 
+# TODO: refactor error codes -- 
+# they should be somewhere in one place with verbose names
 class SchemaWebHook(APIView):
 
     '''
@@ -35,7 +37,7 @@ class SchemaWebHook(APIView):
                 return self._process_authorization_request(account,
                                                            request_serializer.data)
             elif request_type == 'presentment':
-                return self._process_apresentment_request(account,
+                return self._process_presentment_request(account,
                                                           request_serializer.data)
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
@@ -54,7 +56,7 @@ class SchemaWebHook(APIView):
         # we should fail with 500 here fast 
         # if it is not presented - it means that whole start up was broken
         settlement_account = UserAccountsUnion.objects.get_inner_settlement_account()
-        revenue_account = UserAccountsUnion.objects.get_inner_revenue_account()
+        revenue_account = UserAccountsUnion.objects.get_revenue_account()
         if settlement_account is None or \
                 revenue_account is None:
             # send 500 explicitly
