@@ -43,7 +43,8 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
         }
         schema_params.update(kwargs)
         request = request_factory.post('/api/v1/request/',
-            self.create_schema_request(**schema_params))
+            self.create_schema_request(**schema_params),
+            format='json')
         return SchemaWebHook.as_view()(request)
 
     def create_duplicate_transaction_by_request(self):
@@ -80,7 +81,7 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
 
     def test__invalid_user_request__retcode(self):
         response = self.create_authorization_transaction_by_request(account_id='INVALID')
-        self.assertEqual(response.status_code, status.HTTP_424_FAILED_DEPENDANCY)
+        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
 
     def test__duplicate_transaction__retcode(self):
         response = self.create_duplicate_transaction_by_request()

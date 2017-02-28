@@ -194,4 +194,4 @@ class TestTransactionAPIMixin(TestTransactionMixin):
         '''
         for key in schema_request.keys():
             if 'amount' in key:
-                schema_request[key] = '.%2f' % schema_request[key]
+                schema_request[key] = '%.2f' % schema_request[key]

@@ -62,7 +62,8 @@ class PresentmentRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
         }
         schema_params.update(kwargs)
         request = request_factory.post('/api/v1/request/',
-            self.create_schema_request(**schema_params))
+            self.create_schema_request(**schema_params),
+            format='json')
         return SchemaWebHook.as_view()(request)
 
     def test__valid_presentment_request__retcode(self):

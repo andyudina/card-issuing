@@ -6,6 +6,7 @@ from rest_framework.parsers import JSONParser
 
 from processing.models import UserAccountsUnion, \
                               Transaction
+from processing.models.transactions import IssuerTransactionError                             
 from processing.serializers import SchemaRequestSerializer
 
 
@@ -27,10 +28,10 @@ class SchemaWebHook(APIView):
             account = self._get_account_by_id(
                            request_serializer.data.get('card_id'))
             if not account:
-                return HttpResponse(status=status.HTTP_424_FAILED_DEPENDANCY)
+                return HttpResponse(status=status.HTTP_406_NOT_ACCEPTABLE)
             # 
             request_type = request_serializer.data.get('type')
-            if request_type == 'authorisation':
+            if request_type == 'authorization':
                 return self._process_authorization_request(account,
                                                            request_serializer.data)
             elif request_type == 'presentment':
