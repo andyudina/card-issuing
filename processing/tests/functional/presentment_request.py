@@ -59,7 +59,7 @@ class PresentmentRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
         request_factory = APIRequestFactory()
         schema_params = {
             'type': 'presentment', 
-            'account_id': self.sender_account.id,
+            'card_id': self.sender_account.card_id,
             'transaction_code': self.authorization_transaction.code,
             'amount': self.transfer_amount,
             'settlement_amount': self.settlement_amount
@@ -95,7 +95,7 @@ class PresentmentRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
                                       self.transfer_amount * (1 - self.settlement_coeff))
 
     def test__invalid_user_request__retcode(self):
-        response = self.create_presentment_transaction_by_request(account_id='INVALID')
+        response = self.create_presentment_transaction_by_request(card_id='INVALID')
         self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
 
     def test__invalid_transaction_request__retcode(self):

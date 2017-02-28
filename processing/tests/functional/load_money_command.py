@@ -23,7 +23,7 @@ class LoadMoneyCommandTestCase(CreateAccountMixin,
     
     def test__user_base_amount_increased(self):
         load_money_amount = 10.0
-        call_command('load_money', self.user_account.id, load_money_amount, 'EUR')
+        call_command('load_money', self.user_account.card_id, load_money_amount, 'EUR')
         self.check_account_result_sum(
             self.user_account.base_account.id, load_money_amount)
 

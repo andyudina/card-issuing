@@ -72,7 +72,7 @@ class UserAccountManager(models.Manager):
         Prefetches related "real" accounts safely for next update,
         using select_for_update.
         '''
-        # TODO: chck how select for update in subquery works
+        # TODO: check how select for update in subquery works
         return self.prefetch_related(
                     models.Prefetch(
                        'accounts', 
@@ -80,6 +80,7 @@ class UserAccountManager(models.Manager):
                     )
                ).get(id = account_id)
 
+    # TODO: generate unique card ids on the fly
     def create(self, *args, **kwargs):
         '''
         Creates user accounts with all "real" accounts linked.
@@ -126,7 +127,7 @@ class UserAccountManager(models.Manager):
         except ObjectDoesNotExist:
             root_user = self._get_root_user()
             return self.create(user=root_user, role=role, 
-                               id=role, name=role,
+                               card_id=role, name=role,
                                linked_account_types=[BASIC_ACCOUNT_TYPE,])
         except MultipleObjectsReturned:
             raise ValueError('More than one {} acc'.format(role))
@@ -175,7 +176,10 @@ class UserAccountsUnion(models.Model):
      - base account and reserved account
     '''
 
-    id = models.CharField(verbose_name='Account ID', max_length=CARD_ID_LENGTH, primary_key=True)
+    # inner card_id should be sensible info.
+    # so we user auto increment filed to identify user account instead
+    card_id = models.CharField(verbose_name='Account ID', max_length=CARD_ID_LENGTH, 
+                               unique=True)
     created_at = models.DateTimeField(verbose_name='Created at', auto_now_add=True)
     name = models.CharField(verbose_name='Name', max_length=255) # max possible length for mysql back end
     user = models.ForeignKey('auth.User', verbose_name='Owner')

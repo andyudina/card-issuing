@@ -41,7 +41,7 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
         request_factory = APIRequestFactory()
         schema_params = {
             'amount': self.transfer_amount, 
-            'account_id': self.user_account.id,  
+            'card_id': self.user_account.card_id,  
         }
         schema_params.update(kwargs)
         request = request_factory.post('/api/v1/request/',
@@ -83,7 +83,7 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
                                       self.real_transfer_amount)
 
     def test__invalid_user_request__retcode(self):
-        response = self.create_authorization_transaction_by_request(account_id='INVALID')
+        response = self.create_authorization_transaction_by_request(card_id='INVALID')
         self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
 
     def test__duplicate_transaction__retcode(self):

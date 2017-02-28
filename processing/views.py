@@ -27,7 +27,7 @@ class SchemaWebHook(APIView):
         if request_serializer.is_valid():
             # check account exists
             # TODO: put it into serizlizer
-            account = self._get_account_by_id(
+            account = self._get_account_by_card_id(
                            request_serializer.data.get('card_id'))
             if not account:
                 return HttpResponse(status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -72,14 +72,14 @@ class SchemaWebHook(APIView):
         except IssuerTransactionError as err:
             return HttpResponse(status=self._get_http_status_by_code(err.code))
 
-    def _get_account_by_id(self, account_id):
+    def _get_account_by_card_id(self, card_id):
         # TODO: check if account has rights to do transaction
         '''
         Helper for retrieving account.
         '''
         # we depends on inner integrity checks 
         # and don't need to check if multiple objects returned
-        return UserAccountsUnion.objects.filter(id=account_id).first()
+        return UserAccountsUnion.objects.filter(card_id=card_id).first()
 
     def _get_http_status_by_code(self, code):
         '''

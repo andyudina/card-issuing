@@ -23,7 +23,7 @@ class CreateNewAccTestCase(CreateAccountMixin, TestCase):
         cls.user = cls.create_user()
 
     def test__create_new_user_basic_account(self):
-        account = UserAccountsUnion.objects.create(user=self.user, id='TESTID')
+        account = UserAccountsUnion.objects.create(user=self.user, card_id='TESTID')
         self._test_account_has_link(account, 'b')
         self._test_account_has_link(account, 'r')
         self._test_account_has_proper_links_number(account, 2)
@@ -50,7 +50,7 @@ class CreateNewAccTestCase(CreateAccountMixin, TestCase):
             self._create_revenue_account()
 
     def test__create_new_user_account_with_specified_type(self):
-        account = UserAccountsUnion.objects.create(user=self.user, id='TESTID2', 
+        account = UserAccountsUnion.objects.create(user=self.user, card_id='TESTID2', 
                                                    linked_account_types=['b',])
         self._test_account_has_link(account, 'b')
         self._test_account_has_proper_links_number(account, 1)

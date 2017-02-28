@@ -38,8 +38,8 @@ class CreateAccountMixin:
         Create basic account without any money saved
         '''
         user = cls.create_user()
-        account_id = get_random_string_for_test()
-        account = UserAccountsUnion.objects.create(user=user, id=account_id)
+        card_id = get_random_string_for_test()
+        account = UserAccountsUnion.objects.create(user=user, card_id=card_id)
         if created_at:
             UserAccountsUnion.objects.filter(id = account.id).update(created_at=created_at)
             account.refresh_from_db()
@@ -195,7 +195,7 @@ class TestTransactionAPIMixin(TestTransactionMixin):
         }
         schema_request = {
             'type': kwargs.get('type', 'authorization'),
-            'card_id': kwargs.get('account_id', 'TEST'),
+            'card_id': kwargs.get('card_id', 'TEST'),
             'transaction_id': kwargs.get('transaction_code', 'TEST'),
             'merchant_name': kwargs.get('merchant_name', 'Test merchant'),
             'merchant_country': kwargs.get('merchant_country', 'US'),

@@ -135,7 +135,6 @@ class TransactionManager(models.Manager):
         '''
         try:
             return self._rollback(code, TRANSACTION_PRESENTMANT_IS_TOO_LATE_STATUS)
-            print('ok')
         except IntegrityError:
             pass # ok if already rollbacked
       
@@ -155,8 +154,6 @@ class TransactionManager(models.Manager):
         Logs loading money as transfering some "external" account
         '''
         code = self.get_code_for_date_and_status(TRANSACTION_LOAD_MONEY_STATUS)
-        print(to_account)
-        print(amount)
         return self._create_with_transfer(from_account=from_account, to_account=to_account,
                                           code=code, status=TRANSACTION_LOAD_MONEY_STATUS,
                                           amount=amount)

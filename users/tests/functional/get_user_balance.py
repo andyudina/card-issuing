@@ -2,7 +2,7 @@ import datetime
 
 from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIRequestFactory, \
+from rest_framework.test import APIClient, \
                                 force_authenticate
 
 from card_issuing_excercise.utils import datetime_to_timestamp
@@ -30,13 +30,12 @@ class GetUserBalanceTestCase(CreateAccountMixin, TestCase):
         '''
         Constructs and executes request for balance API.
         '''
-        request_factory = APIRequestFactory()
-        request = request_factory.get(
-            '/api/v1/user/{}/balance/'.format(kwargs.get('user_id'), self.user_account.user_id),
-            *args)
+        client = APIClient()
         if not kwargs.get('skip_auth'):
-            force_authenticate(request, self.user_account.user)
-        return BalanceView.as_view()(request)
+            client.force_authenticate(user=self.user_account.user)
+        return client.get(
+            '/api/v1/user/{}/balance/'.format(kwargs.get('user_id', self.user_account.id)),
+            *args)
 
     ##
     # Tests
@@ -48,7 +47,7 @@ class GetUserBalanceTestCase(CreateAccountMixin, TestCase):
         self.assertDictEqual(response.data,
              {
                  'available_amount': amount,
-                 'total_amount': anount
+                 'total_amount': amount
              })           
 
     def test__balance_in_past__successfull(self):
@@ -65,5 +64,6 @@ class GetUserBalanceTestCase(CreateAccountMixin, TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)     
    
     def test__non_authorized_user__got_403(self):
-        response = self.get_user_balance_by_request(user_id=self.user_account.user_id + 1)
+        fake_user_account = self.create_account_with_amount()
+        response = self.get_user_balance_by_request(user_id=fake_user_account.user_id)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
