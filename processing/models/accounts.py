@@ -1,17 +1,62 @@
+from django.contrib.auth.models import User
+from django.core.exceptions import MultipleObjectsReturned, \
+                                   ObjectDoesNotExist
 from django.db import models
 
 from processing.models.accounts_day_log import AccountDayLog
 from processing.models.transfers import Transfer
 from card_issuing_excercise.settings import AMOUNT_PRECISION_SETTINGS 
 from card_issuing_excercise.utils import date_from_ts, to_start_day_from_ts, \
-                                          is_in_future
+                                         is_in_future
 
 
 CARD_ID_LENGTH = 8
 #TODO: refactor short repr usage -- should use constans with verbose names instead
+
+##
+## ACCOUNT TYPES
+##
+
+# Account types support transfers unification  for authorization accounts:
+# Each regular user has 2 accounts for available money and reserved one
+# Authorization transaction is processed like transfering btw 
+# basic account and reserved account of one user
+
+BASIC_ACCOUNT_TYPE = 'b'
+RESERVED_ACCOUNT_TYPE = 'r'
 ACCOUNT_TYPES = (
-    ('b', 'Basic account'),
-    ('r', 'Reserved account')
+    (BASIC_ACCOUNT_TYPE, 'Basic account'),
+    (RESERVED_ACCOUNT_TYPE, 'Reserved account')
+)
+
+##
+## USER ACCOUNT ROLES
+##
+
+# All transfers are unified by roles mechanism:
+# we process revenues, settlements and money load the same way as other transactions:
+# by transfering amounts from one account to another.
+# Transfering money to or from external agents like decreasing dept to Schema during settlement
+# or loading money directly to user account is processed like transfering money  to some exteral accounts
+# which total amount is not managed by us
+
+REAL_USER_ACCOUNT_ROLE = 'b'
+INNER_SETTLEMENT_ACCOUNT_ROLE = 'is'
+EXTERNAL_LOAD_MONEY_ACCOUNT_ROLE = 'el'
+EXTERNAL_SETTLEMENT_ACCOUNT_ROLE = 'es'
+REVENUE_ACCOUNT_ROLE = 'r'
+
+ACCOUNT_ROLE_TYPES = (
+    # basic user account
+    (REAL_USER_ACCOUNT_ROLE, 'Real user'),
+    # account which holds our depts to the Schema
+    (INNER_SETTLEMENT_ACCOUNT_ROLE, 'Inner settlement account'),
+    # external account from which money is loaded
+    (EXTERNAL_LOAD_MONEY_ACCOUNT_ROLE, 'External load money account'),
+    # the Schema external account, where we transfer money during settlement
+    (EXTERNAL_SETTLEMENT_ACCOUNT_ROLE, 'External settlement account'),
+    # Account that holds our revenue
+    (REVENUE_ACCOUNT_ROLE, 'Inner revenue account')
 )
 
 class UserAccountManager(models.Manager):
@@ -47,10 +92,79 @@ class UserAccountManager(models.Manager):
         for account_type in linked_account_types:
             user_account.accounts.create(account_type=account_type)
         return user_account
- 
+
     def _get_linked_account_types(self, **kwargs):
         return kwargs.get('linked_account_types') or \
                [ account_type[0] for account_type in ACCOUNT_TYPES ]
+
+    ##
+    # Helpers for creating an retieving special accounts
+    ##
+
+    def create_inner_settlement_account(self):
+        return self.create_special_account(INNER_SETTLEMENT_ACCOUNT_ROLE)
+
+    def create_external_load_money_account(self):
+        return self.create_special_account(EXTERNAL_LOAD_MONEY_ACCOUNT_ROLE)
+
+    def create_extra_settlement_account(self):
+        return self.create_special_account(INNER_SETTLEMENT_ACCOUNT_ROLE)
+
+    def create_revenue_account(self):
+        return self.create_special_account(REVENUE_ACCOUNT_ROLE)
+
+    def create_special_account(self, role):
+        '''
+        Helper for creating special account of specified type.
+        For simplicity binds it to root user.
+        Fails if there is no one.
+        Checks if accout already exists and returns it
+        instead of creating new one
+        '''
+        try:
+            return self.get(role=role)
+        except ObjectDoesNotExist:
+            root_user = self._get_root_user()
+            return self.create(user=root_user, role=role, 
+                               id=role, name=role,
+                               linked_account_types=[BASIC_ACCOUNT_TYPE,])
+        except MultipleObjectsReturned:
+            raise ValueError('More than one {} acc'.format(role))
+
+    def _get_root_user(self):
+        '''
+        Helper which tries to get superuser 
+        or raises ValueError
+        '''
+        try:
+            return User.objects.get(username='root', is_superuser=True)
+        except User.DoesNotExist:
+            raise ValueError('No superuser found')
+
+    def get_inner_settlement_account(self):
+        return self.get_special_account_or_none(INNER_SETTLEMENT_ACCOUNT_ROLE)
+
+    def get_external_load_money_account(self):
+        return self.get_special_account_or_none(EXTERNAL_LOAD_MONEY_ACCOUNT_ROLE)
+
+    def get_extra_settlement_account(self):
+        return self.get_special_account_or_none(INNER_SETTLEMENT_ACCOUNT_ROLE)
+
+    def get_revenue_account(self):
+        return self.get_special_account_or_none(REVENUE_ACCOUNT_ROLE)
+
+    #TODO: cover getters with units
+    def get_special_account_or_none(self, role):
+        try:
+            return self.get(role=role)
+        # let caller deside what to do if smth bad has happened
+        # caller shouldn't know what ind of "bad" occured
+        # all errors are equal for him
+        except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
+            return None
+
 
 
 class UserAccountsUnion(models.Model):
@@ -64,7 +178,9 @@ class UserAccountsUnion(models.Model):
     id = models.CharField(verbose_name='Account ID', max_length=CARD_ID_LENGTH, primary_key=True)
     created_at = models.DateTimeField(verbose_name='Created at', auto_now_add=True)
     name = models.CharField(verbose_name='Name', max_length=255) # max possible length for mysql back end
-    user = models.OneToOneField('auth.User', verbose_name='Owner')
+    user = models.ForeignKey('auth.User', verbose_name='Owner')
+    role = models.CharField(verbose_name='Role', max_length=2, 
+                            default=REAL_USER_ACCOUNT_ROLE, choices=ACCOUNT_ROLE_TYPES)
 
     objects = UserAccountManager()
 
@@ -88,7 +204,7 @@ class UserAccountsUnion(models.Model):
         '''
         Shortcut for currently available sum
         '''
-        return self._get_account_amount_by_type('b')
+        return self._get_account_amount_by_type(BASIC_ACCOUNT_TYPE)
 
     @property
     def available_amount(self):
@@ -102,21 +218,21 @@ class UserAccountsUnion(models.Model):
         '''
         Shortcut for currently reserved sum
         '''
-        return self._get_account_amount_by_type('r')
+        return self._get_account_amount_by_type(RESERVED_ACCOUNT_TYPE)
 
     @property
     def base_account(self):        
         '''
         Shortcut for base account, which stores currently avialable sum of money.
         '''
-        return self._get_account_by_type('b')
+        return self._get_account_by_type(BASIC_ACCOUNT_TYPE)
 
     @property
     def reserved_account(self):
         '''
         Shortcut for reserved account, which stores currently reserved sum of money.
         '''
-        return self._get_account_by_type('r')
+        return self._get_account_by_type(RESERVED_ACCOUNT_TYPE)
 
     def _get_account_by_type(self, account_type):
         '''
@@ -161,7 +277,8 @@ class UserAccountsUnion(models.Model):
                                          values('account_type', 'account_logs__amount')
         nearest_accounts = {account['account_type']: account['account_logs__amount']
                             for account in nearest_accounts}
-        return nearest_accounts.get('b', 0), nearest_accounts.get('r', 0)
+        return nearest_accounts.get(BASIC_ACCOUNT_TYPE, 0), \
+               nearest_accounts.get(RESERVED_ACCOUNT_TYPE, 0)
 
     def _roll_forward_in_time_range(self, begin_date, end_date):
         '''
@@ -175,7 +292,8 @@ class UserAccountsUnion(models.Model):
             values('account__account_type').\
             annotate(amount_diff = models.Sum('amount'))
         transfer_diffs = {t['account__account_type']:t['amount_diff'] for t in transfer_diffs}
-        return transfer_diffs.get('b', 0), transfer_diffs.get('r', 0)
+        return transfer_diffs.get(BASIC_ACCOUNT_TYPE, 0), \
+               transfer_diffs.get(RESERVED_ACCOUNT_TYPE, 0)
         
 
 class Account(models.Model):

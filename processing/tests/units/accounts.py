@@ -1,10 +1,13 @@
 import datetime
 
+from django.contrib.auth.models import User
 from django.test import TestCase
 
-from processing.models.accounts import UserAccountsUnion
+from django.core.exceptions import ObjectDoesNotExist
+from processing.models.accounts import UserAccountsUnion, \
+                                       REVENUE_ACCOUNT_ROLE
 from processing.models.transactions import TRANSACTION_AUTHORIZATION_STATUS, \
-                                    TRANSACTION_LOAD_MONEY_STATUS
+                                           TRANSACTION_LOAD_MONEY_STATUS
 from card_issuing_excercise.utils import datetime_to_timestamp, to_start_day
 from card_issuing_excercise.utils.tests import CreateAccountMixin, \
                                                CreateTransactionMixin
@@ -25,8 +28,30 @@ class CreateNewAccTestCase(CreateAccountMixin, TestCase):
         self._test_account_has_link(account, 'r')
         self._test_account_has_proper_links_number(account, 2)
 
+    def test__create_special_account__success(self):
+        self._create_root_user()
+        account = self._create_revenue_account()
+        self.assertEqual(account.role, REVENUE_ACCOUNT_ROLE)
+ 
+    def test__create_special_account__owned_by_superuser(self):
+        self._create_root_user()
+        account = self._create_revenue_account()
+        self.assertEqual(account.user.username, 'root')
+
+    def test__create_duplicate_special_account__new_not_created(self):
+        self._create_root_user()
+        self._create_revenue_account()
+        self._create_revenue_account()
+        self.assertEqual(
+            UserAccountsUnion.objects.filter(role=REVENUE_ACCOUNT_ROLE).count(), 1)
+
+    def test__create_special_account__root_does_not_exist(self):
+        with self.assertRaises(ValueError):
+            self._create_revenue_account()
+
     def test__create_new_user_account_with_specified_type(self):
-        account = UserAccountsUnion.objects.create(user=self.user, id='TESTID2', linked_account_types=['b',])
+        account = UserAccountsUnion.objects.create(user=self.user, id='TESTID2', 
+                                                   linked_account_types=['b',])
         self._test_account_has_link(account, 'b')
         self._test_account_has_proper_links_number(account, 1)
 
@@ -35,6 +60,13 @@ class CreateNewAccTestCase(CreateAccountMixin, TestCase):
 
     def _test_account_has_proper_links_number(self, user_account, links_number):
         self.assertEqual(user_account.accounts.count(), links_number)
+
+    def _create_revenue_account(self):
+        return UserAccountsUnion.objects.\
+                                 create_special_account(REVENUE_ACCOUNT_ROLE)
+
+    def _create_root_user(self):
+        User.objects.create_superuser('root', 'root', 'root')
 
 
 class GetAccountForUpdate(CreateAccountMixin, TestCase):

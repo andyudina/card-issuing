@@ -62,24 +62,15 @@ class CreateAccountMixin:
         '''
         Helper for creating special account for collecting revenue.
         '''
-        return cls.create_special_account('revenue')
+        return UserAccountsUnion.objects.create_revenue_account()
 
     @classmethod
     def create_settlement_account(cls, created_at=None):
         '''
         Helper for creating special account for collecting debts to the Schema.
         '''
-        return cls.create_special_account('settlement')
+        return UserAccountsUnion.objects.create_inner_settlement_account()
 
-    @classmethod
-    def create_special_account(cls, role, created_at=None):
-        '''
-        Creates special account (settlement, revenue, or "extra"
-        '''
-        account = cls.create_account(created_at)
-        account.role = role
-        account.save(update_fields=['role'])
-        return account
 
 class CreateTransactionMixin:
 

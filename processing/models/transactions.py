@@ -17,7 +17,7 @@ TRANSACTION_LOAD_MONEY_STATUS = 'l'
 
 TRANSACTION_STATUS_CHOICES = (
     (TRANSACTION_AUTHORIZATION_STATUS,           'Authorization'),
-    (TRANSACTION_PRESENTMENT_STATUS ,              'Presentment'),
+    (TRANSACTION_PRESENTMENT_STATUS,             'Presentment'),
     # transaction declined because of money shortage
     (TRANSACTION_MONEY_SHORTAGE_STATUS,          'Money shortage'),   
     # transaction declined because there was no presentment during T + 1 day           
@@ -37,7 +37,13 @@ class IssuerTransactionError(ValueError):
     - already_done (for reduplicated transactions)
     - not_enough_money
     '''
-    pass
+    
+    @property
+    def code(self):
+        '''
+        Shortcut for error code
+        '''
+        return self.args[0]
 
 
 #TODO: need more pure functions for better unit testing. Too much side effects is a pain
@@ -97,7 +103,7 @@ class TransactionManager(models.Manager):
             rollback_transaction = self._rollback(code)
         except Transaction.DoesNotExist:
             # there was no authorisation transaction
-            raise IssuerTransactionError('already_done')
+            raise IssuerTransactionError('does_not_exists')
         except IntegrityError:
             # transaction was already rollbacked
             # TODO: place for consistency checking
