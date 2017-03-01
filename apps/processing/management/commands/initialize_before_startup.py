@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
-from processing.models import UserAccountsUnion
+from apps.processing.models import UserAccountsUnion
 from card_issuing_excercise.settings import ROOT_PASSWORD
 
 
