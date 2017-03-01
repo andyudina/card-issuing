@@ -44,8 +44,7 @@ class SettlementTestCase(CreateAccountMixin, CreateTransactionMixin,
             code=self.authorization_transaction.code, amount=self.transfer_amount,
             status=TRANSACTION_PRESENTMENT_STATUS,
             from_account=self.sender_account.base_account,
-            to_account=self.settlement_account.base_account,
-        )
+            to_account=self.settlement_account.base_account)
 
     def _arrange_for_rollback_check(self): 
         '''
@@ -70,19 +69,19 @@ class SettlementTestCase(CreateAccountMixin, CreateTransactionMixin,
     def test__settlements_were_transfered__settlement_amount_deducted(self):
         self._arrange_for_settlement_check()
         call_command('batch_settle')
-        self.check_account_result_sum(
+        self.check_account_result_amount(
             self.settlement_account.base_account.id, 0.0)
 
     def test__outdated_transaction_rollback__base_amount_increased(self):
         self._arrange_for_rollback_check()
         call_command('batch_settle')
-        self.check_account_result_sum(
+        self.check_account_result_amount(
             self.sender_account.base_account.id, self.base_amount)
 
     def test__outdated_transaction_rollback__reserved_amount_deducted(self):
         self._arrange_for_rollback_check()
         call_command('batch_settle')
-        self.check_account_result_sum(
+        self.check_account_result_amount(
             self.sender_account.reserved_account.id, 0.0)
 
 

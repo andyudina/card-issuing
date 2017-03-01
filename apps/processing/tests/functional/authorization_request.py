@@ -40,8 +40,7 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
         request_factory = APIRequestFactory()
         schema_params = {
             'amount': self.transfer_amount, 
-            'card_id': self.user_account.card_id,  
-        }
+            'card_id': self.user_account.card_id}
         schema_params.update(kwargs)
         request = request_factory.post('/api/v1/request/',
             self.create_schema_request(**schema_params),
@@ -73,12 +72,12 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
 
     def test__valid_authorization_request__base_amount_deducted(self):
         response = self.create_authorization_transaction_by_request()
-        self.check_account_result_sum(self.user_account.base_account.id,
+        self.check_account_result_amount(self.user_account.base_account.id,
                                       self.base_amount - self.real_transfer_amount)
 
     def test__valid_authorization_request__reserved_amount_increased(self):
         response = self.create_authorization_transaction_by_request()
-        self.check_account_result_sum(self.user_account.reserved_account.id,
+        self.check_account_result_amount(self.user_account.reserved_account.id,
                                       self.real_transfer_amount)
 
     def test__invalid_user_request__retcode(self):
@@ -91,13 +90,13 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
 
     def test__duplicate_transaction__base_amount_not_modified(self):
         self.create_duplicate_transaction_by_request()
-        self.check_account_result_sum(self.user_account.base_account.id,
+        self.check_account_result_amount(self.user_account.base_account.id,
                                       self.base_amount)
 
 
     def test__duplicate_transaction__reserved_amount_not_modified(self):
         self.create_duplicate_transaction_by_request()
-        self.check_account_result_sum(self.user_account.reserved_account.id,
+        self.check_account_result_amount(self.user_account.reserved_account.id,
                                       self.reserved_amount)
 
     def test__not_enough_money__retcode(self):
@@ -106,12 +105,12 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
 
     def test__not_enough_money__base_amount_not_modified(self):
         self.create_not_enough_money_transaction_by_request()
-        self.check_account_result_sum(self.user_account.base_account.id,
+        self.check_account_result_amount(self.user_account.base_account.id,
                                       self.base_amount)
 
     def test__not_enough_money__reserved_amount_not_modified(self):
         self.create_not_enough_money_transaction_by_request()
-        self.check_account_result_sum(self.user_account.reserved_account.id,
+        self.check_account_result_amount(self.user_account.reserved_account.id,
                                       self.reserved_amount)
 
     ## currency tests - not implemented

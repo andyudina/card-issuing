@@ -160,20 +160,20 @@ class TestTransactionMixin(DecimalAssertionsMixin):
     and did all require modifications
     '''
 
-    def check_successfull_money_transfering(self, **kwargs):
-        self.check_account_result_sum(kwargs.get('account_id'), kwargs.get('expected_amount'))
-        self.check_transfer_exists(kwargs.get('account_id'), kwargs.get('transfer_amount'), kwargs.get('transaction_id'))
+    #def check_successfull_money_transfering(self, **kwargs):
+    #    self.check_account_result_sum(kwargs.get('account_id'), kwargs.get('expected_amount'))
+    #    self.check_transfer_exists(kwargs.get('account_id'), kwargs.get('transfer_amount'), kwargs.get('transaction_id'))
 
-    def check_account_result_sum(self, account_id, expected_sum):
+    def check_account_result_amount(self, account_id, expected_amount):
         account = Account.objects.get(id=account_id)
-        self.assertAlmostEqual(account.amount, decimal.Decimal(expected_sum), 
+        self.assertAlmostEqual(account.amount, decimal.Decimal(expected_amount), 
                                places=AMOUNT_PRECISION_SETTINGS.get('decimal_places'))
 
     def check_transfer_exists(self,
-            account_id, transfer_sum, transaction_id):
-        transfer_sums = Transfer.objects.filter(transaction_id=transaction_id, account_id=account_id).\
+            account_id, transfer_amount, transaction_id):
+        transfer_amounts = Transfer.objects.filter(transaction_id=transaction_id, account_id=account_id).\
                                     values_list('amount', flat=True)
-        self.assertAlmostIn(transfer_sum, transfer_sums)
+        self.assertAlmostIn(transfer_amount, transfer_amounts)
 
 
 EXTRA_SCHEMA_REQUEST_KEYS = ['settlement_amount', 'settlement_currency']

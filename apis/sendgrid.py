@@ -1,9 +1,9 @@
-'''This is the mock wrapper around Sendgrid emails API'''
+'''This is the stub wrapper around Sendgrid emails API'''
 
 class SendgridAPI:
 
     '''
-    Mocks alarming by emails.
+    Stub alarming by emails.
     '''
 
     def alarm_schema_err(self, *args, **kwargs):

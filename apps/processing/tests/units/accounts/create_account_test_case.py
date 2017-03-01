@@ -9,7 +9,7 @@ from utils.tests import CreateAccountMixin, \
                         ROOT_USERNAME
 
 
-class CreateNewAccTestCase(CreateAccountMixin, TestCase):
+class CreateNewAcc(CreateAccountMixin, TestCase):
 
     '''
     Test account creation logic

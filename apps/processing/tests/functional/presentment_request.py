@@ -75,22 +75,22 @@ class PresentmentRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
 
     def test__valid_presentment_request__sender_base_amount_deducted(self):
         self.create_presentment_transaction_by_request()
-        self.check_account_result_sum(self.sender_account.base_account.id,
+        self.check_account_result_amount(self.sender_account.base_account.id,
                                       self.base_amount - self.transfer_amount)
 
     def test__valid_presentment_request__sender_reserved_amount_deducted(self):
         self.create_presentment_transaction_by_request()
-        self.check_account_result_sum(
+        self.check_account_result_amount(
             self.sender_account.reserved_account.id, 0.0)
 
     def test__valid_presentment_request__reciever_base_amount_increased(self):
         self.create_presentment_transaction_by_request()
-        self.check_account_result_sum(self.settlement_account.base_account.id,
+        self.check_account_result_amount(self.settlement_account.base_account.id,
                                       self.transfer_amount * self.settlement_coeff)
 
     def test__valid_presentment_request__revenue_amount_increased(self):
         self.create_presentment_transaction_by_request()
-        self.check_account_result_sum(self.revenue_account.base_account.id,
+        self.check_account_result_amount(self.revenue_account.base_account.id,
                                       self.transfer_amount * (1 - self.settlement_coeff))
 
     def test__invalid_user_request__retcode(self):
@@ -107,22 +107,22 @@ class PresentmentRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
 
     def test__duplicate_transaction__sender_base_amount_not_modified(self):
         self.create_duplicated_presentment_transaction()
-        self.check_account_result_sum(self.sender_account.base_account.id,
+        self.check_account_result_amount(self.sender_account.base_account.id,
                                       self.base_amount - self.authorization_amount)
 
     def test__duplicate_transaction__sender_reserved_amount_not_modified(self):
         self.create_duplicated_presentment_transaction()
-        self.check_account_result_sum(self.sender_account.reserved_account.id,
+        self.check_account_result_amount(self.sender_account.reserved_account.id,
                                       self.authorization_amount)
 
     def test__duplicate_transaction__reciever_base_amount_not_modified(self):
         self.create_duplicated_presentment_transaction()
-        self.check_account_result_sum(
+        self.check_account_result_amount(
             self.settlement_account.base_account.id, 0.0)
 
     def test__duplicate_transaction__revenue_not_modified(self):
         self.create_duplicated_presentment_transaction()
-        self.check_account_result_sum(
+        self.check_account_result_amount(
             self.revenue_account.base_account.id, 0.0)
 
     ## currency tests - not implemented

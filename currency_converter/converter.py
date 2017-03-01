@@ -1,5 +1,5 @@
 ''' 
-Mock module for converting currencies.
+Stub module for converting currencies.
 Uses extrnal api to determine exchange rates
 '''
 
@@ -10,7 +10,7 @@ from card_issuing_excercise.settings import DEFAULT_CURRENCY
 class Converter:
 
     '''
-    Mock class for currency convertation.
+    Stub class for currency convertation.
     Also handles currency API monitoring and errors alarming.
     Throws errors if API can't be reached.
     Transactions are supposed to fail then

@@ -1,9 +1,9 @@
-'''This is the mock wrapper around SMS Gateway API'''
+'''This is the stub wrapper around SMS Gateway API'''
 
 class SmsAPI:
 
     '''
-    Mocks alarming by sms.
+    Stub alarming by sms.
     Gateway should be covered by monitoring.
     '''
 

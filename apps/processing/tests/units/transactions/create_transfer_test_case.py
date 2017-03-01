@@ -18,8 +18,7 @@ class TransactionTransferManagement(CreateAccountMixin,
         self.base_amount = self.user_account.base_amount
         self.transfer_amount = self.user_account.base_amount
         self.transaction = self.create_transaction()
-        print(self.transfer_amount)
-        print(self.base_amount)
+
     ##
     # Helpers
     ##
@@ -33,15 +32,26 @@ class TransactionTransferManagement(CreateAccountMixin,
 
     def test__add_transfer__sender_amount_was_decucted(self):
         self.add_transfer()
-        self.check_successfull_money_transfering(account_id=self.user_account.base_account.id,
-            expected_amount=self.base_amount - self.transfer_amount, 
-            transaction_id=self.transaction.id, 
-            transfer_amount=-self.transfer_amount)
+        self.check_account_result_amount(
+             self.user_account.base_account.id, self.base_amount - self.transfer_amount)
+
+    def test__add_transfer__sender_transfer_exists(self):
+        self.add_transfer()
+        self.check_transfer_exists(
+             self.user_account.base_account.id, 
+             -self.transfer_amount,
+             self.transaction.id)
+
 
     def test__add_transfer__reciever_amount_was_increased(self):
         self.add_transfer()
-        self.check_successfull_money_transfering(account_id=self.user_account.reserved_account.id,
-            expected_amount=self.transfer_amount, transaction_id=self.transaction.id,
-            transfer_amount=self.transfer_amount)
+        self.check_account_result_amount(
+             self.user_account.reserved_account.id, self.transfer_amount)
 
+    def test__add_transfer__reciever_transfer_exists(self):
+        self.add_transfer()
+        self.check_transfer_exists(
+             self.user_account.reserved_account.id, 
+             self.transfer_amount,
+             self.transaction.id)        
 

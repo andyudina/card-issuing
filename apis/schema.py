@@ -1,14 +1,14 @@
-'''This is the mock module for schema API wrapper'''
+'''This is the stub module for schema API wrapper'''
 
 class SchemaAPI:
 
     '''
-    Mock for API with schema communication
+    Stub for API with schema communication
     '''
     
     def transfer_debts_to_schema(self, *args, **kwargs):
         '''
-        Mock method for transfering money at the settlement 
+        Stub method for transfering money at the settlement 
         '''
         pass
 

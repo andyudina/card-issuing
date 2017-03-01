@@ -55,6 +55,7 @@ REALISATION DETAILS:
   - card_issuing_excercise/ settings|urls|wsgi entry point
   - currency_converter/
   - utils/ misc utils
+  - unique_id_generator/ external server for unique robust ids generation
  
 - I've split whole project into two web-apps: one for communication with Schema, another for interactions with user. 
   That can be a bit redundant for current purposes, but supports further growth. 

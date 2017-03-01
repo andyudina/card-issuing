@@ -1,14 +1,14 @@
-'''This is the mock module for currecny API wrapper'''
+'''This is the stub module for currecny API wrapper'''
 
 class CurrencyAPI:
 
     '''
-    Mock for API with schema communication
+    Stub for API with schema communication
     '''
     
     def get_exchange_rate(self, *args, **kwargs):
         '''
-        Mock method for looking up currencies 
+        Stub method for looking up currencies 
         '''
         return 1
 

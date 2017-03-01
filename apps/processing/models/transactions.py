@@ -5,6 +5,7 @@ from django.db import models, \
                       transaction, IntegrityError
 
 from card_issuing_excercise.settings import AUTHORISATION_OVERHEAD
+from unique_id_generator.generator import UniqueIDGenerator
 
 
 TRANSACTION_ID_LENGTH = 9
@@ -52,6 +53,10 @@ class IssuerTransactionError(ValueError):
 
 #TODO: need more pure functions for better unit testing. Too much side effects is a pain
 #TODO: pass all arguments in kwargs -- it will be much more readable
+
+TRANSACTION_ERROR_ALREADY_DONE = 'already_done'
+TRANSACTION_ERROR_NOT_ENOUGH_MONEY = 'not_enough_money'
+
 class TransactionManager(models.Manager):
 
     '''
@@ -73,13 +78,13 @@ class TransactionManager(models.Manager):
                 self.create(code=code, status=TRANSACTION_MONEY_SHORTAGE_STATUS)
             except IntegrityError: # it is ok if transaction has alreafy been processed
                 pass
-            raise IssuerTransactionError('not_enough_money')
+            raise IssuerTransactionError(TRANSACTION_ERROR_NOT_ENOUGH_MONEY)
         try:
             return self._create_with_transfer(from_account=from_account, to_account=to_account,
                                               code=code, status=TRANSACTION_AUTHORIZATION_STATUS, 
                                               amount=amount_for_reserve)
         except IntegrityError: # transaction have already been processed
-            raise IssuerTransactionError('already_done')
+            raise IssuerTransactionError(TRANSACTION_ERROR_ALREADY_DONE)
 
     @transaction.atomic # too many atomics in prod -- bad for perfomance
     def present_transaction(self, code, billable_amount, 
@@ -138,22 +143,24 @@ class TransactionManager(models.Manager):
         except IntegrityError:
             pass # ok if already rollbacked
       
-    #TODO: cover with tests
     def settle_day_transactions(self, amount, from_account, to_account):
         '''
-        Logs day settlement as our inner transfers
+        Logs day settlement as our inner transfers.
+        Indempotent to multiple runs
         '''
         code = self.get_code_for_date_and_status(TRANSACTION_SETTLEMENT_STATUS)
-        return self._create_with_transfer(from_account=from_account, to_account=to_account,
-                                          code=code, status=TRANSACTION_SETTLEMENT_STATUS,
-                                          amount=amount)
+        try:
+            return self._create_with_transfer(from_account=from_account, to_account=to_account,
+                                              code=code, status=TRANSACTION_SETTLEMENT_STATUS,
+                                              amount=amount)
+        except IntegrityError:
+            return self.get(code=code, status=TRANSACTION_SETTLEMENT_STATUS)
 
-    #TODO: cover with tests
     def load_money(self, amount, from_account, to_account):
         '''
         Logs loading money as transfering some "external" account
         '''
-        code = self.get_code_for_date_and_status(TRANSACTION_LOAD_MONEY_STATUS)
+        code = UniqueIDGenerator().get_new(length=TRANSACTION_ID_LENGTH)
         return self._create_with_transfer(from_account=from_account, to_account=to_account,
                                           code=code, status=TRANSACTION_LOAD_MONEY_STATUS,
                                           amount=amount)
@@ -266,4 +273,13 @@ class Transaction(models.Model):
  
     class Meta:
         unique_together = ('code', 'status')
+
+    class Errors:
+        '''
+        Incapsulates error codes.
+        Makes imports simplier
+        '''
+        ALREADY_DONE = TRANSACTION_ERROR_ALREADY_DONE
+        NOT_ENOUGH_MONEY = TRANSACTION_ERROR_NOT_ENOUGH_MONEY
+
 

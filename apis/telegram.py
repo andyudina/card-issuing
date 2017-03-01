@@ -1,9 +1,9 @@
-'''This is the mock wrapper around Telegram webhooks'''
+'''This is the stub wrapper around Telegram webhooks'''
 
 class TelegramAPI:
 
     '''
-    Mocks alarming to Telegram channels.
+    Stub alarming to Telegram channels.
     '''
 
     def alarm_schema_err(self, *args, **kwargs):

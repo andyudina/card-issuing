@@ -1,4 +1,4 @@
-''' Mock module for converter unit tests '''
+''' Stub module for converter unit tests '''
 
 import unittest
 
