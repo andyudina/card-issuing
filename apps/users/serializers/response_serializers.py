@@ -27,4 +27,4 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        exclude = ('code', ) #Don't expose transaction ids
+        exclude = ('code', 'base64_description') #Don't expose transaction ids

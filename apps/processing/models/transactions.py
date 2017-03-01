@@ -10,6 +10,8 @@ from unique_id_generator.generator import UniqueIDGenerator
 
 TRANSACTION_ID_LENGTH = 9
 
+## Transaction statuses
+
 TRANSACTION_AUTHORIZATION_STATUS = 'a'
 TRANSACTION_PRESENTMENT_STATUS = 'p'
 TRANSACTION_MONEY_SHORTAGE_STATUS = 'z' # z for zero ;)
@@ -54,8 +56,13 @@ class IssuerTransactionError(ValueError):
 #TODO: need more pure functions for better unit testing. Too much side effects is a pain
 #TODO: pass all arguments in kwargs -- it will be much more readable
 
+## Transaction error codes
+
 TRANSACTION_ERROR_ALREADY_DONE = 'already_done'
 TRANSACTION_ERROR_NOT_ENOUGH_MONEY = 'not_enough_money'
+TRANSACTION_ERROR_DOES_NOT_EXISTS = 'does_not_exists'
+TRANSACTION_ERROR_INVALID_CONFIGURATION = 'invalid_issuer_configuration'
+TRANSACTION_ERROR_INVALID_FORMAT = 'invlid_format'
 
 class TransactionManager(models.Manager):
 
@@ -114,12 +121,12 @@ class TransactionManager(models.Manager):
             rollback_transaction = self._rollback(code)
         except Transaction.DoesNotExist:
             # there was no authorisation transaction
-            raise IssuerTransactionError('does_not_exists')
+            raise IssuerTransactionError(TRANSACTION_ERROR_DOES_NOT_EXISTS)
         except IntegrityError:
             # transaction was already rollbacked
             # TODO: place for consistency checking
             # What if transactions was rollback, but was not presented?
-            raise IssuerTransactionError('already_done')
+            raise IssuerTransactionError(TRANSACTION_ERROR_ALREADY_DONE)
         try:
             presntment_transaction = self._create_with_transfer(
                 from_account=from_account, to_account=to_account,
@@ -127,7 +134,7 @@ class TransactionManager(models.Manager):
         except IntegrityError:
             # rollback was not done but presentment transaction was created
             # TODO: should definetly go through consistency checking
-            raise IssuerTransactionError('already_done')
+            raise IssuerTransactionError(TRANSACTION_ERROR_ALREADY_DONE)
         
         if not amount_diff: return presntment_transaction
         # Transfer amount difference to extra_account
@@ -252,6 +259,10 @@ class Transaction(models.Model):
 
     code = models.CharField(verbose_name='Transaction ID', db_index=True, max_length=TRANSACTION_ID_LENGTH)
     created_at = models.DateTimeField(verbose_name='Created at', auto_now_add=True)
+    human_readable_description = models.TextField(
+                                        verbose_name='Human readable description', null=True, blank=True)
+    base64_description = models.TextField(
+                                verbose_name='JSON from schema in base64', null=True, blank=True)
     status = models.CharField(verbose_name='Status', max_length=1, choices=TRANSACTION_STATUS_CHOICES)
 
     objects = TransactionManager()
@@ -271,6 +282,13 @@ class Transaction(models.Model):
         account.modify_amount(amount)
         self.transfers.create(account=account, amount=amount)
  
+    def update_descriptions(self, shema_json):
+        '''
+        Forms short description for user
+        And saves whole json in base64
+        '''
+        pass
+
     class Meta:
         unique_together = ('code', 'status')
 
@@ -281,5 +299,7 @@ class Transaction(models.Model):
         '''
         ALREADY_DONE = TRANSACTION_ERROR_ALREADY_DONE
         NOT_ENOUGH_MONEY = TRANSACTION_ERROR_NOT_ENOUGH_MONEY
-
+        DOES_NOT_EXISTS = TRANSACTION_ERROR_DOES_NOT_EXISTS 
+        INVALID_CONFIGURATION = TRANSACTION_ERROR_INVALID_CONFIGURATION
+        INVALID_FORMAT = TRANSACTION_ERROR_INVALID_FORMAT
 

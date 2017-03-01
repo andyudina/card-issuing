@@ -69,8 +69,7 @@ class PresentmentRequestTestCase(ShemaWebHookBaseTestCase):
             'card_id': self.sender_account.card_id,
             'transaction_code': self.authorization_transaction.code,
             'amount': self.transfer_amount,
-            'settlement_amount': self.settlement_amount
-        }
+            'settlement_amount': self.settlement_amount}
         schema_params.update(kwargs)
         request = request_factory.post('/api/v1/request/',
             self.create_schema_request(**schema_params),
