@@ -2,17 +2,17 @@ import datetime
 
 from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIClient, \
-                                force_authenticate
 
 from card_issuing_excercise.utils import datetime_to_timestamp
-from card_issuing_excercise.utils.tests import CreateAccountMixin
+from card_issuing_excercise.utils.tests import CreateAccountMixin, \
+                                               TestUsersAPIMixin
 from users.views import BalanceView
 
 
 #TODO: refactor
 # - interchange blabla_account.amount to blabla_amount
-class GetUserBalanceTestCase(CreateAccountMixin, TestCase):
+class GetUserBalanceTestCase(CreateAccountMixin, 
+                             TestUsersAPIMixin, TestCase):
    
     '''
     Functional test for transactions API.
@@ -30,13 +30,9 @@ class GetUserBalanceTestCase(CreateAccountMixin, TestCase):
         '''
         Constructs and executes request for balance API.
         '''
-        client = APIClient()
-        if not kwargs.get('skip_auth'):
-            client.force_authenticate(user=self.user_account.user)
-        return client.get(
-            '/api/v1/user/{}/balance/'.format(kwargs.get('user_id', self.user_account.id)),
-            *args)
-
+        return self.get_resource_for_user('balance', *args,
+                                           user_id=kwargs.get('user_id', self.user_account.id),
+                                           user_for_auth=kwargs.get('user_for_auth', self.user_account.user))
     ##
     # Tests
     ##
@@ -60,7 +56,7 @@ class GetUserBalanceTestCase(CreateAccountMixin, TestCase):
              })
 
     def test__non_authenticated_user__got_403(self):
-        response = self.get_user_balance_by_request(skip_auth=True)
+        response = self.get_user_balance_by_request(user_for_auth=None)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)     
    
     def test__non_authorized_user__got_403(self):

@@ -5,6 +5,8 @@ from django.db import models
 
 from processing.models.accounts_day_log import AccountDayLog
 from processing.models.transfers import Transfer
+from processing.models.transactions import Transaction, \
+                                           TRANSACTION_AUTHORIZATION_STATUS
 from card_issuing_excercise.settings import AMOUNT_PRECISION_SETTINGS 
 from card_issuing_excercise.utils import date_from_ts, to_start_day_from_ts, \
                                          is_in_future
@@ -298,7 +300,34 @@ class UserAccountsUnion(models.Model):
         transfer_diffs = {t['account__account_type']:t['amount_diff'] for t in transfer_diffs}
         return transfer_diffs.get(BASIC_ACCOUNT_TYPE, 0), \
                transfer_diffs.get(RESERVED_ACCOUNT_TYPE, 0)
-        
+
+    #TODO: coveer with tests
+    def get_transactions(self, **kwargs):
+        '''
+        Get all transactions for account in time range
+        Accepts:
+        - begin_ts
+        - end_ts
+        All parameters are not required
+        '''
+        filter_params = {}
+        if kwargs.get('begin_ts'):
+            filter_params['transaction__created_at__gte'] = date_from_ts(
+                                                                kwargs.get('begin_ts'))
+        if kwargs.get('end_ts'):
+            filter_params['transaction__created_at__lt'] = date_from_ts(
+                                                                kwargs.get('end_ts'))
+
+        transaction_ids = [
+            transfer.transaction_id 
+            for transfer in self.base_account.transfers.filter(**filter_params)]
+
+        return Transaction.objects.prefetch_related(
+                    models.Prefetch('transfers',
+                           queryset=Transfer.objects.filter(account_id=self.base_account.id))
+                    ).filter(id__in=transaction_ids).exclude(status=TRANSACTION_AUTHORIZATION_STATUS).\
+                                                     order_by('created_at')  
+
 
 class Account(models.Model):
 

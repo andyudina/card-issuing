@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 
+#TODO: add api/v1 prefix manually
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     #TODO requests -> request

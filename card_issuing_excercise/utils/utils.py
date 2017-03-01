@@ -1,6 +1,8 @@
 import datetime
+from json import loads, dumps
 import time
 
+#TODO: names with datetime_to_timestamp should be symmetrical
 def date_from_ts(ts):
     '''
     Shortcut for ts to datetime obj converting
@@ -47,3 +49,9 @@ def almost_equal(value_1, value_2, accuracy=10**-4, precision=4):
     return abs(
         round(value_1, precision) - round(value_2, precision)) < accuracy
 
+
+def to_dict(input_ordered_dict):
+    '''
+    Coverts ordered dict to dict
+    '''
+    return loads(dumps(input_ordered_dict))

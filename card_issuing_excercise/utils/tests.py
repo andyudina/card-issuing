@@ -4,6 +4,7 @@ import string
 
 from django.db import IntegrityError, transaction
 from django.contrib.auth.models import User
+from rest_framework.test import APIClient
 
 from processing.models.accounts import UserAccountsUnion, Account
 from processing.models.transactions import Transaction, TRANSACTION_AUTHORIZATION_STATUS
@@ -216,3 +217,30 @@ class TestTransactionAPIMixin(TestTransactionMixin):
         for key in schema_request.keys():
             if 'amount' in key:
                 schema_request[key] = '%.2f' % schema_request[key]
+
+
+class TestUsersAPIMixin:
+
+    '''
+    Mixin for testing users public API - misc helpers
+    '''
+
+    def get_resource_for_user(self, resource, *args, **kwargs):
+        '''
+        Constructs and executes request for user API.
+        '''
+        # use APIClient for more verbose routing test
+        client = APIClient()
+        if kwargs.get('user_for_auth'):
+            client.force_authenticate(user=kwargs.get('user_for_auth'))
+        # TODO: native url constructions 
+        return client.get(
+            '/api/v1/user/{}/{}/'.format(kwargs.get('user_id'), resource),
+            *args)
+
+    def get_amount_repr(self, amount):
+        '''
+        Converts amount to json representation
+        '''
+        return str(-round(amount, 4))
+

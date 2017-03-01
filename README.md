@@ -33,7 +33,7 @@ URLS:
        - settlement_amount: string (can be null)
 
   2. Trasactions for user
-    URI:    /user/(?P\<user_id\>\d+)/transactions/
+    URI:    /user/(?P\<user_id\>\d+)/transaction/
     METHOD: GET
     PARAMS:
       - begin_ts: int (can be null)
