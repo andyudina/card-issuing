@@ -2,8 +2,10 @@ import decimal
 import random
 import string
 
+
 from django.db import IntegrityError, transaction
 from django.contrib.auth.models import User
+from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.processing.models.accounts import UserAccountsUnion, Account
@@ -12,8 +14,6 @@ from apps.processing.models.transfers import Transfer
 from card_issuing_excercise.settings import AMOUNT_PRECISION_SETTINGS
 from .utils import almost_equal
 
-
-ROOT_USERNAME = 'root'
 
 def get_random_string_for_test(N=8):
     '''
@@ -88,13 +88,6 @@ class CreateAccountMixin:
         '''
         return UserAccountsUnion.objects.create_external_load_money_account()
 
-    @classmethod
-    def create_root_user(self):
-        '''
-        Helper for supreuser creation
-        '''
-        User.objects.create_superuser(ROOT_USERNAME, 'root', 'root')
-
 
 class CreateTransactionMixin:
 
@@ -114,7 +107,6 @@ class CreateTransactionMixin:
         if kwargs.get('from_account'):
             kwargs.get('from_account').modify_amount(-kwargs.get('amount'))
             transaction.transfers.create(account=kwargs.get('from_account'), amount=-kwargs.get('amount'))
-
         if kwargs.get('to_account'):
             kwargs.get('to_account').modify_amount(kwargs.get('amount'))
             transaction.transfers.create(account=kwargs.get('to_account'), amount=kwargs.get('amount'))
@@ -159,10 +151,6 @@ class TestTransactionMixin(DecimalAssertionsMixin):
     Helper mixin for testing that transaction was created successfully
     and did all require modifications
     '''
-
-    #def check_successfull_money_transfering(self, **kwargs):
-    #    self.check_account_result_sum(kwargs.get('account_id'), kwargs.get('expected_amount'))
-    #    self.check_transfer_exists(kwargs.get('account_id'), kwargs.get('transfer_amount'), kwargs.get('transaction_id'))
 
     def check_account_result_amount(self, account_id, expected_amount):
         account = Account.objects.get(id=account_id)
@@ -245,4 +233,30 @@ class TestUsersAPIMixin:
         Converts amount to json representation
         '''
         return str(-round(amount, 4))
+
+
+## Base classes for test cases
+
+class TransactionBaseTestCase(CreateAccountMixin, CreateTransactionMixin,
+                               TestTransactionMixin, TestCase): 
+    '''
+    Base class for testing transactions logic
+    '''
+    pass
+
+class ShemaWebHookBaseTestCase(CreateAccountMixin, CreateTransactionMixin,
+                               TestTransactionAPIMixin, TestCase):
+
+    '''
+    Base class for testing schema web hook
+    '''
+    pass
+
+class UserAPITestCase(CreateAccountMixin, 
+                      TestUsersAPIMixin, TestCase):
+
+    '''
+    Base class for testing user api views
+    '''
+    pass
 

@@ -5,19 +5,20 @@ from django.test import TestCase
 from apps.processing.models.accounts import UserAccountsUnion, \
                                             BASIC_ACCOUNT_TYPE, \
                                             REVENUE_ACCOUNT_ROLE
-from utils.tests import CreateAccountMixin, \
-                        ROOT_USERNAME
+from card_issuing_excercise.settings import ROOT_USERNAME
+from utils.tests import CreateAccountMixin
 
 
-class CreateNewAcc(CreateAccountMixin, TestCase):
+
+class CreateNewAccount(CreateAccountMixin, 
+                       TestCase):
 
     '''
     Test account creation logic
     '''
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.user = cls.create_user()
+    def setUp(self):
+        self.user = self.create_user()
 
     ##
     # Helpers
@@ -31,11 +32,6 @@ class CreateNewAcc(CreateAccountMixin, TestCase):
                                                 card_id=kwargs.get('card_id', 'TESTID'))
 
     def create_revenue_account(self, **kwargs):
-        if not kwargs.get('skip_superuser'):
-            self.create_root_user()
-        return self.create_revenue_account_without_superuser()
-
-    def create_revenue_account_without_superuser(self):
         return UserAccountsUnion.objects.\
                                  create_special_account(REVENUE_ACCOUNT_ROLE)
 
@@ -84,14 +80,11 @@ class CreateNewAcc(CreateAccountMixin, TestCase):
         self.assertEqual(account.user.username, ROOT_USERNAME)
 
     def test__create_duplicate_special_account__new_not_created(self):
-        self.create_revenue_account()
-        self.create_revenue_account_without_superuser()        
+        for try_number in range(2):
+            self.create_revenue_account()    
         self.assertEqual(
             UserAccountsUnion.objects.filter(role=REVENUE_ACCOUNT_ROLE).count(), 1)
 
-    def test__create_special_account__root_does_not_exist(self):
-        with self.assertRaises(ValueError):
-            self.create_revenue_account(skip_superuser=True)
 
     def test__create_new_user_account_with_specified_type__link_created(self):
         account = self.create_account_with_one_link()

@@ -1,37 +1,42 @@
 import datetime
 import decimal
 
-from django.test import TestCase
 from rest_framework import status
 
 from apps.processing.models.transactions import TRANSACTION_PRESENTMENT_STATUS
 from apps.users.views import TRANSACTIONS_PER_PAGE
 from utils import datetime_to_timestamp, to_dict
-from utils.tests import CreateAccountMixin, \
-                        CreateTransactionMixin, \
-                        TestUsersAPIMixin                                              
+from utils.tests import UserAPITestCase, \
+                        CreateTransactionMixin
 
 
-# TODO: rm copy paste from balance test and 
-# TODO: store transaction description!!
-class GetUserTransactionsTestCase(CreateAccountMixin, CreateTransactionMixin, 
-                                  TestUsersAPIMixin, TestCase):
+class GetUserTransactionsTestCase(UserAPITestCase,
+                                  CreateTransactionMixin):
    
     '''
     Functional test for transactions API.
     '''
 
     def setUp(self):
-        # create user with balance
-        self.create_root_user()
+        self.arrange_accounts()
+        self.arrage_amounts()
+        self.arrange_transactions()
+ 
+    ##
+    # Helpers
+    ##
+
+    # Arrangements
+    def arrange_accounts(self):
         self.user_account = self.create_account_with_amount()
         self.settlement_account = self.create_settlement_account()
-        #self.revenue_account = self.create_revenue_account()
+
+    def arrage_amounts(self):
         self.base_amount = self.user_account.base_account.amount
         self.reserved_amount = self.user_account.reserved_account.amount
         self.transfer_amount = decimal.Decimal(0.3) * self.base_amount
-        #self.real_transfered_amount = Transaction.objects.get_amount_for_reserve(self.transfer_amount)
-        #self.settlement_coeff = decimal.Decimal(0.7)
+
+    def arrange_transactions(self):
         self.authorization_transaction = self.create_transaction(
             from_account=self.user_account.base_account,
             to_account=self.user_account.reserved_account,
@@ -40,13 +45,9 @@ class GetUserTransactionsTestCase(CreateAccountMixin, CreateTransactionMixin,
             code=self.authorization_transaction.code, amount=self.transfer_amount,
             status=TRANSACTION_PRESENTMENT_STATUS,
             from_account=self.user_account.base_account,
-            to_account=self.settlement_account.base_account,
-        )
- 
-    ##
-    # Helper
-    ##
+            to_account=self.settlement_account.base_account)
 
+    # Shortcuts
     def get_user_transactions_by_request(self, *args, **kwargs):
         '''
         Constructs and executes request for transaction API.
@@ -103,5 +104,4 @@ class GetUserTransactionsTestCase(CreateAccountMixin, CreateTransactionMixin,
     def test__non_authenticated_user__got_403(self):
         response = self.get_user_transactions_by_request(user_for_auth=None)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
 

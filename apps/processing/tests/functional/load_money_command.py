@@ -4,10 +4,7 @@ from django.test import TestCase
 from utils.tests import CreateAccountMixin, \
                         TestTransactionMixin
 
-# TODO: embedd currency exchange into architecture!
-# TODO: cover currency exchange with tests!
-# TODO: create accounts on the flight?
-# TODO: to many errors without it
+
 class LoadMoneyCommandTestCase(CreateAccountMixin,
                                TestTransactionMixin, TestCase):
    
@@ -18,7 +15,6 @@ class LoadMoneyCommandTestCase(CreateAccountMixin,
 
     def setUp(self):
         self.user_account = self.create_account()
-        self.create_root_user()
         self.create_load_money_account()
     
     def test__user_base_amount_increased(self):

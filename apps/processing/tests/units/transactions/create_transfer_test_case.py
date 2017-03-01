@@ -1,12 +1,9 @@
 from django.test import TestCase
 
-from utils.tests import CreateAccountMixin, CreateTransactionMixin, \
-                        TestTransactionMixin
+from utils.tests import TransactionBaseTestCase
 
 
-class TransactionTransferManagement(CreateAccountMixin, 
-                                    CreateTransactionMixin, 
-                                    TestTransactionMixin, TestCase):
+class TransactionTransferManagement(TransactionBaseTestCase):
 
     '''
     Test for transfering logic. 

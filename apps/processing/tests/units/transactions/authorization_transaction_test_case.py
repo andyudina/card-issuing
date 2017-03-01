@@ -1,18 +1,13 @@
 import decimal
 
-from django.test import TestCase
-
-from apps.processing.models.transfers import Transfer
 from apps.processing.models.transactions import Transaction, \
                                                 IssuerTransactionError, \
                                                 TRANSACTION_AUTHORIZATION_STATUS
 
-from utils.tests import CreateAccountMixin, CreateTransactionMixin, \
-                        TestTransactionMixin
+from utils.tests import TransactionBaseTestCase
 
 
-class AuthorisationTransaction(CreateAccountMixin, CreateTransactionMixin, 
-                               TestTransactionMixin, TestCase):
+class AuthorisationTransaction(TransactionBaseTestCase):
 
     '''
     Test for authorization transaction creation

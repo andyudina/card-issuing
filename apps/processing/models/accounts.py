@@ -7,7 +7,8 @@ from apps.processing.models.accounts_day_log import AccountDayLog
 from apps.processing.models.transfers import Transfer
 from apps.processing.models.transactions import Transaction, \
                                                 TRANSACTION_AUTHORIZATION_STATUS
-from card_issuing_excercise.settings import AMOUNT_PRECISION_SETTINGS 
+from card_issuing_excercise.settings import AMOUNT_PRECISION_SETTINGS, \
+                                            ROOT_USERNAME, ROOT_PASSWORD 
 from utils import date_from_ts, to_start_day_from_ts, \
                   is_in_future
 
@@ -127,14 +128,14 @@ class UserAccountManager(models.Manager):
         try:
             return self.get(role=role)
         except ObjectDoesNotExist:
-            root_user = self._get_root_user()
+            root_user = self._get_or_create_root_user()
             return self.create(user=root_user, role=role, 
                                card_id=role, name=role,
                                linked_account_types=[BASIC_ACCOUNT_TYPE,])
         except MultipleObjectsReturned:
             raise ValueError('More than one {} acc'.format(role))
 
-    def _get_root_user(self):
+    def _get_or_create_root_user(self):
         '''
         Helper which tries to get superuser 
         or raises ValueError
@@ -142,7 +143,8 @@ class UserAccountManager(models.Manager):
         try:
             return User.objects.get(username='root', is_superuser=True)
         except User.DoesNotExist:
-            raise ValueError('No superuser found')
+            return User.objects.create_superuser(ROOT_USERNAME, 
+                                                 ROOT_USERNAME, ROOT_PASSWORD)
 
     def get_inner_settlement_account(self):
         return self.get_special_account_or_none(INNER_SETTLEMENT_ACCOUNT_ROLE)

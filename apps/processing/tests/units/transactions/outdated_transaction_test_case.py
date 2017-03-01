@@ -1,17 +1,13 @@
 import datetime
 import decimal
 
-from django.test import TestCase
-
 from apps.processing.models.transactions import Transaction, \
                                                 TRANSACTION_PRESENTMENT_STATUS, \
                                                 TRANSACTION_PRESENTMANT_IS_TOO_LATE_STATUS
-from utils.tests import CreateAccountMixin, CreateTransactionMixin, \
-                        TestTransactionMixin
+from utils.tests import TransactionBaseTestCase
 
 
-class RollbackNonPresentmentTransaction(CreateAccountMixin, CreateTransactionMixin, 
-                                        TestTransactionMixin, TestCase):
+class RollbackNonPresentmentTransaction(TransactionBaseTestCase):
 
     '''
     Test for rolling back because of TTL

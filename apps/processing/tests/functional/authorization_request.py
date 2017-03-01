@@ -7,15 +7,10 @@ from rest_framework.test import APIRequestFactory
 from apps.processing.models.transactions import Transaction, \
                                                 TRANSACTION_AUTHORIZATION_STATUS
 from apps.processing.views import SchemaWebHook 
-from utils.tests import CreateAccountMixin, CreateTransactionMixin, \
-                        TestTransactionAPIMixin
+from utils.tests import ShemaWebHookBaseTestCase
 
 
-#TODO: refactor:
-# - all mixins into one base class
-# - boilerplate for account creation into one base class
-class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
-                                   TestTransactionAPIMixin, TestCase):
+class AuthorizationRequestTestCase(ShemaWebHookBaseTestCase):
    
     '''
     Functional test for authorization Schema webhook.
@@ -24,14 +19,22 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
 
     def setUp(self):
         self.user_account = self.create_account_with_amount()
+        self.arrange_amounts()
+
+    ##
+    # Helper methods
+    ##
+
+    # Arrangements
+
+    def arrange_amounts(self):
         self.base_amount = self.user_account.base_account.amount
         self.reserved_amount = self.user_account.reserved_account.amount
         self.transfer_amount = decimal.Decimal(0.5) * self.base_amount
         self.real_transfer_amount = Transaction.objects.get_amount_for_reserve(
                                                         self.transfer_amount)
-    ##
-    # Helper methods
-    ##
+
+    # Shortcuts
 
     def create_authorization_transaction_by_request(self, **kwargs):
         '''
@@ -91,7 +94,7 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
     def test__duplicate_transaction__base_amount_not_modified(self):
         self.create_duplicate_transaction_by_request()
         self.check_account_result_amount(self.user_account.base_account.id,
-                                      self.base_amount)
+                                         self.base_amount)
 
 
     def test__duplicate_transaction__reserved_amount_not_modified(self):
@@ -119,5 +122,4 @@ class AuthorizationRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
 
     def test__currency_api_is_down__get_500(self):
         pass
-
 

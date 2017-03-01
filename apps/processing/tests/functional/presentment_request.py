@@ -1,19 +1,15 @@
 import decimal
 
-from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
 
 from apps.processing.models.transactions import Transaction, \
                                                 TRANSACTION_PRESENTMENT_STATUS
 from apps.processing.views import SchemaWebHook
-from utils.tests import CreateAccountMixin, CreateTransactionMixin, \
-                        TestTransactionAPIMixin
+from utils.tests import ShemaWebHookBaseTestCase
 
 
-# TODO: checks for invalid format
-class PresentmentRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
-                                 TestTransactionAPIMixin, TestCase):
+class PresentmentRequestTestCase(ShemaWebHookBaseTestCase):
 
    
     '''
@@ -22,24 +18,36 @@ class PresentmentRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
     '''
 
     def setUp(self):
-        self.create_root_user()
+        self.arrange_accounts()
+        self.arrange_amounts()
+        self.arrange_transaction()
+
+    ##
+    # Helpers
+    ##
+
+    # Arrangements
+
+    def arrange_accounts(self):
         self.sender_account = self.create_account_with_amount()
         self.settlement_account = self.create_settlement_account()
         self.revenue_account = self.create_revenue_account()
+
+    def arrange_amounts(self):
         self.base_amount = self.sender_account.base_account.amount
         self.reserved_amount = self.sender_account.reserved_account.amount
         self.transfer_amount = decimal.Decimal(0.5) * self.base_amount
         self.authorization_amount = self.transfer_amount # no coeff in presentment tests for simplicity
         self.settlement_coeff = decimal.Decimal(0.7)
         self.settlement_amount = self.settlement_coeff * self.transfer_amount
+
+    def arrange_transaction(self):
         self.authorization_transaction = self.create_transaction(
              from_account=self.sender_account.base_account,
              to_account=self.sender_account.reserved_account,
              amount=self.transfer_amount)
 
-    ##
-    # Helpers
-    ##
+    #  Shortcuts
 
     def create_duplicated_presentment_transaction(self, **kwargs):
         '''
@@ -76,7 +84,7 @@ class PresentmentRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
     def test__valid_presentment_request__sender_base_amount_deducted(self):
         self.create_presentment_transaction_by_request()
         self.check_account_result_amount(self.sender_account.base_account.id,
-                                      self.base_amount - self.transfer_amount)
+                                         self.base_amount - self.transfer_amount)
 
     def test__valid_presentment_request__sender_reserved_amount_deducted(self):
         self.create_presentment_transaction_by_request()
@@ -86,12 +94,12 @@ class PresentmentRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
     def test__valid_presentment_request__reciever_base_amount_increased(self):
         self.create_presentment_transaction_by_request()
         self.check_account_result_amount(self.settlement_account.base_account.id,
-                                      self.transfer_amount * self.settlement_coeff)
+                                         self.transfer_amount * self.settlement_coeff)
 
     def test__valid_presentment_request__revenue_amount_increased(self):
         self.create_presentment_transaction_by_request()
         self.check_account_result_amount(self.revenue_account.base_account.id,
-                                      self.transfer_amount * (1 - self.settlement_coeff))
+                                         self.transfer_amount * (1 - self.settlement_coeff))
 
     def test__invalid_user_request__retcode(self):
         response = self.create_presentment_transaction_by_request(card_id='INVALID')
@@ -108,12 +116,12 @@ class PresentmentRequestTestCase(CreateAccountMixin, CreateTransactionMixin,
     def test__duplicate_transaction__sender_base_amount_not_modified(self):
         self.create_duplicated_presentment_transaction()
         self.check_account_result_amount(self.sender_account.base_account.id,
-                                      self.base_amount - self.authorization_amount)
+                                        self.base_amount - self.authorization_amount)
 
     def test__duplicate_transaction__sender_reserved_amount_not_modified(self):
         self.create_duplicated_presentment_transaction()
         self.check_account_result_amount(self.sender_account.reserved_account.id,
-                                      self.authorization_amount)
+                                         self.authorization_amount)
 
     def test__duplicate_transaction__reciever_base_amount_not_modified(self):
         self.create_duplicated_presentment_transaction()

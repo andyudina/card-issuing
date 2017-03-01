@@ -1,17 +1,12 @@
 import datetime
 
-from django.test import TestCase
 from rest_framework import status
 
 from utils import datetime_to_timestamp
-from utils.tests import CreateAccountMixin, \
-                        TestUsersAPIMixin
+from utils.tests import UserAPITestCase
 
 
-#TODO: refactor
-# - interchange blabla_account.amount to blabla_amount
-class GetUserBalanceTestCase(CreateAccountMixin, 
-                             TestUsersAPIMixin, TestCase):
+class GetUserBalanceTestCase(UserAPITestCase):
    
     '''
     Functional test for transactions API.
@@ -38,7 +33,7 @@ class GetUserBalanceTestCase(CreateAccountMixin,
 
     def test__current_balance__successfull(self):
         response = self.get_user_balance_by_request()
-        amount = self.user_account.base_account.amount
+        amount = self.user_account.base_amount
         self.assertDictEqual(response.data,
              {
                  'available_amount': amount,
@@ -47,7 +42,8 @@ class GetUserBalanceTestCase(CreateAccountMixin,
 
     def test__balance_in_past__successfull(self):
         date_before = self.user_account.created_at - datetime.timedelta(days=1)
-        response = self.get_user_balance_by_request({'ts': datetime_to_timestamp(date_before)})
+        response = self.get_user_balance_by_request(
+                        {'ts': datetime_to_timestamp(date_before)})
         self.assertDictEqual(response.data,
              {
                  'available_amount': 0,

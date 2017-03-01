@@ -21,50 +21,39 @@ class GetUserBalance(CreateAccountMixin,
     '''
 
     def setUp(self):
-        # define amounts
-        self.base_amount = 10.0
-        self.reserved_amount = 5.0
-        self.transfer_amount = 2.5
-
-        # define dates
-        self.today = to_start_day(datetime.datetime.now())
-        self.yesterday = self.get_day_before(self.today)
-        self.day_before_yesterday = self.get_day_before(self.yesterday)
-
-        # construct accounts
-        self.user_account = self.create_account(self.day_before_yesterday)
-        self.update_account_amount(BASIC_ACCOUNT_TYPE, self.base_amount)
-        self.update_account_amount(REVENUE_ACCOUNT_ROLE, self.reserved_amount)
-
-        # shortcuts to accounts
-        self.base_account = self.user_account.base_account
-        self.reserved_account = self.user_account.reserved_account
-
-        # create transactions
-        # emulate load data transaction
+        self.arrange_amounts()
+        self.arrange_dates()
+        self.arrange_accounts()
+        # arrange transactions
         self.create_load_data_transaction()
-        # emulate authorization transaction for the firts usage day
         self.create_auth_transaction_for_first_day()
-        # emulates authorization transaction for the second usage day
         self.create_auth_transaction_for_second_day()
-        # create logs for yesterday
         self.create_account_logs_for_yesterday()
 
     ##
     # Heplers
     ##
 
-    def update_account_amount(self, acc_type, amount):
-        '''
-        Shortcut for account update
-        '''
-        self.user_account.accounts.filter(account_type=acc_type).\
-                                   update(amount=amount)
-    def get_day_before(self, date):
-        '''
-        Get day before date in args 
-        '''
-        return date - datetime.timedelta(days=1)
+    # Arrangements
+
+    def arrange_amounts(self):
+        self.base_amount = 10.0
+        self.reserved_amount = 5.0
+        self.transfer_amount = 2.5
+
+    def arrange_dates(self):
+        self.today = to_start_day(datetime.datetime.now())
+        self.yesterday = self.get_day_before(self.today)
+        self.day_before_yesterday = self.get_day_before(self.yesterday)
+
+    def arrange_accounts(self):
+        # construct accounts
+        self.user_account = self.create_account(self.day_before_yesterday)
+        self.update_account_amount(BASIC_ACCOUNT_TYPE, self.base_amount)
+        self.update_account_amount(REVENUE_ACCOUNT_ROLE, self.reserved_amount)
+        # shortcuts to accounts
+        self.base_account = self.user_account.base_account
+        self.reserved_account = self.user_account.reserved_account
 
     def create_load_data_transaction(self):
         self.add_transfer(transaction_code='LTEST', status=TRANSACTION_LOAD_MONEY_STATUS,
@@ -111,6 +100,20 @@ class GetUserBalance(CreateAccountMixin,
              date=log_date, amount=self.transfer_amount + self.base_amount)
         self.reserved_account.account_logs.create(
              date=log_date, amount=self.transfer_amount)
+
+    # Shortcuts
+
+    def update_account_amount(self, acc_type, amount):
+        '''
+        Shortcut for account update
+        '''
+        self.user_account.accounts.filter(account_type=acc_type).\
+                                   update(amount=amount)
+    def get_day_before(self, date):
+        '''
+        Get day before date in args 
+        '''
+        return date - datetime.timedelta(days=1)
 
     def get_total_amount(self, amounts_tuple):
         '''

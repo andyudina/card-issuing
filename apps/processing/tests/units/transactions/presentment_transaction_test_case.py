@@ -1,17 +1,13 @@
 import decimal
 from unittest import skip
 
-from django.test import TestCase
-
 from apps.processing.models.transactions import Transaction, IssuerTransactionError, \
                                                 TRANSACTION_PRESENTMENT_STATUS, \
                                                 TRANSACTION_AUTHORIZATION_STATUS
-from utils.tests import CreateAccountMixin, CreateTransactionMixin, \
-                        TestTransactionMixin
+from utils.tests import TransactionBaseTestCase
 
 
-class PresentmentTransaction(CreateAccountMixin, CreateTransactionMixin, 
-                             TestTransactionMixin, TestCase):
+class PresentmentTransaction(TransactionBaseTestCase):
 
     '''
     Test for presentment transaction creation
