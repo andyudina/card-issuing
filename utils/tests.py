@@ -13,6 +13,8 @@ from card_issuing_excercise.settings import AMOUNT_PRECISION_SETTINGS
 from .utils import almost_equal
 
 
+ROOT_USERNAME = 'root'
+
 def get_random_string_for_test(N=8):
     '''
     Shortcut for random string generation.
@@ -91,7 +93,7 @@ class CreateAccountMixin:
         '''
         Helper for supreuser creation
         '''
-        User.objects.create_superuser('root', 'root', 'root')
+        User.objects.create_superuser(ROOT_USERNAME, 'root', 'root')
 
 
 class CreateTransactionMixin:
