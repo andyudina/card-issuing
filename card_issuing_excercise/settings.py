@@ -38,8 +38,8 @@ INSTALLED_APPS = [
 
     'rest_framework',
 
-    'processing', # handles all the money processing and interactions with the Schema
-    'users',      # handles clients interactions
+    'apps.processing', # handles all the money processing and interactions with the Schema
+    'apps.users',      # handles clients interactions
 ]
 
 MIDDLEWARE = [

@@ -46,6 +46,16 @@ URLS:
       - datetime_ts: int (can be null)
 
 REALISATION DETAILS:
+- Directories structire:
+  /
+  - apis/ wrappers for external apis
+  - apps/ directory with django apps
+     - processing/ transactions processing core
+     - users/      supports users interface
+  - card_issuing_excercise/ settings|urls|wsgi entry point
+  - currency_converter/
+  - utils/ misc utils
+ 
 - I've split whole project into two web-apps: one for communication with Schema, another for interactions with user. 
   That can be a bit redundant for current purposes, but supports further growth. 
   The main idea: user iteraction and real money processing should be done by different components.

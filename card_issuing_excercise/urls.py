@@ -20,6 +20,6 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     #TODO requests -> request
-    url(r'^api/v1/requests/', include('processing.urls')),
-    url(r'^api/v1/user/', include('users.urls')), 
+    url(r'^api/v1/requests/', include('apps.processing.urls')),
+    url(r'^api/v1/user/', include('apps.users.urls')), 
 ]

@@ -11,3 +11,5 @@ AMOUNT_PRECISION_SETTINGS = {
     'max_digits': 19,
     'decimal_places': 4
 }
+
+DEFAULT_CURRENCY = 'EUR'
