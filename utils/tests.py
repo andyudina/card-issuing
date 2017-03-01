@@ -161,8 +161,8 @@ class TestTransactionMixin(DecimalAssertionsMixin):
     '''
 
     def check_successfull_money_transfering(self, **kwargs):
-        self.check_account_result_sum(kwargs.get('account_id'), kwargs.get('expected_sum'))
-        self.check_transfer_exists(kwargs.get('account_id'), kwargs.get('transfer_sum'), kwargs.get('transaction_id'))
+        self.check_account_result_sum(kwargs.get('account_id'), kwargs.get('expected_amount'))
+        self.check_transfer_exists(kwargs.get('account_id'), kwargs.get('transfer_amount'), kwargs.get('transaction_id'))
 
     def check_account_result_sum(self, account_id, expected_sum):
         account = Account.objects.get(id=account_id)

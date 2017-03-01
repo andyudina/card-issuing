@@ -10,7 +10,7 @@ class GetAccountForUpdate(CreateAccountMixin,
                           TestCase):
 
     '''
-    Kind of smoke test for select_for_update account logic
+    Smoke test for select_for_update account logic
     '''
 
     def setUp(self):
