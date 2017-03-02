@@ -18,3 +18,7 @@ venv/
 
 # Security
 localsettings.py
+
+# Logs
+log
+pylint
