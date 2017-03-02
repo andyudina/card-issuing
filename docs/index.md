@@ -6,3 +6,4 @@ JSON back-end for a fintech company acting as an Issuer
 - API description
 - Realization details
 - TODOs
+- Installation & tests
