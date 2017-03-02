@@ -59,7 +59,7 @@
                 {
                     "created_at": 1488473323,
                     "id": 1,
-                    "status": 'p',
+                    "status": "p",
                     "human_readable_description": "Awesome Air Jordan sneakers.",
                     "transfers": [
                         {
