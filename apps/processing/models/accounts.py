@@ -1,28 +1,28 @@
+''' Handles accounts related business logic '''
+
 from django.contrib.auth.models import User
 from django.core.exceptions import MultipleObjectsReturned, \
-                                   ObjectDoesNotExist
+    ObjectDoesNotExist
 from django.db import models
 
-from apps.processing.models.accounts_day_log import AccountDayLog
 from apps.processing.models.transfers import Transfer
 from apps.processing.models.transactions import Transaction, \
-                                                TRANSACTION_AUTHORIZATION_STATUS
+    TRANSACTION_AUTHORIZATION_STATUS
 from card_issuing_excercise.settings import AMOUNT_PRECISION_SETTINGS, \
-                                            ROOT_USERNAME, ROOT_PASSWORD 
+    ROOT_USERNAME, ROOT_PASSWORD
 from utils import date_from_ts, to_start_day_from_ts, \
-                  is_in_future
+    is_in_future
 
 
 CARD_ID_LENGTH = 8
-#TODO: refactor short repr usage -- should use constans with verbose names instead
 
 ##
-## ACCOUNT TYPES
+# ACCOUNT TYPES
 ##
 
 # Account types support transfers unification  for authorization accounts:
 # Each regular user has 2 accounts for available money and reserved one
-# Authorization transaction is processed like transfering btw 
+# Authorization transaction is processed like transfering btw
 # basic account and reserved account of one user
 
 BASIC_ACCOUNT_TYPE = 'b'
@@ -33,7 +33,7 @@ ACCOUNT_TYPES = (
 )
 
 ##
-## USER ACCOUNT ROLES
+# USER ACCOUNT ROLES
 ##
 
 # All transfers are unified by roles mechanism:
@@ -62,28 +62,26 @@ ACCOUNT_ROLE_TYPES = (
     (REVENUE_ACCOUNT_ROLE, 'Inner revenue account')
 )
 
+
 class UserAccountManager(models.Manager):
 
-    '''
-    Miscellaneous changes of default manager functionality.
-    '''
+    '''Miscellaneous changes of default manager functionality'''
 
-    # Use inheritance not mixins, as all new added functionality won't be reused elsewhere
+    # Use inheritance not mixins, as all new added functionality won't be
+    # reused elsewhere
 
     def get_account_for_update(self, account_id):
         '''
         Prefetches related "real" accounts safely for next update,
         using select_for_update.
         '''
-        # TODO: check how select for update in subquery works
         return self.prefetch_related(
-                    models.Prefetch(
-                       'accounts', 
-                        queryset=Account.objects.select_for_update()
-                    )
-               ).get(id = account_id)
+            models.Prefetch(
+                'accounts',
+                queryset=Account.objects.select_for_update()
+            )
+        ).get(id=account_id)
 
-    # TODO: generate unique card ids on the fly
     def create(self, *args, **kwargs):
         '''
         Creates user accounts with all "real" accounts linked.
@@ -98,23 +96,31 @@ class UserAccountManager(models.Manager):
         return user_account
 
     def _get_linked_account_types(self, **kwargs):
+        '''
+        Retrieves linked account types from kwargs
+        or generates default ones
+        '''
         return kwargs.get('linked_account_types') or \
-               [ account_type[0] for account_type in ACCOUNT_TYPES ]
+            [account_type[0] for account_type in ACCOUNT_TYPES]
 
     ##
     # Helpers for creating an retieving special accounts
     ##
 
     def create_inner_settlement_account(self):
+        '''Shotcut for inner settlement account creation'''
         return self.create_special_account(INNER_SETTLEMENT_ACCOUNT_ROLE)
 
     def create_external_load_money_account(self):
+        '''Shotcut for external load money account creation'''
         return self.create_special_account(EXTERNAL_LOAD_MONEY_ACCOUNT_ROLE)
 
     def create_external_settlement_account(self):
-        return self.create_special_account(EXTERNAL_SETTLEMENT_ACCOUNT_ROLE )
+        '''Shotcut for external settlement account creation'''
+        return self.create_special_account(EXTERNAL_SETTLEMENT_ACCOUNT_ROLE)
 
     def create_revenue_account(self):
+        '''Shotcut for revenue account creation'''
         return self.create_special_account(REVENUE_ACCOUNT_ROLE)
 
     def create_special_account(self, role):
@@ -129,9 +135,9 @@ class UserAccountManager(models.Manager):
             return self.get(role=role)
         except ObjectDoesNotExist:
             root_user = self._get_or_create_root_user()
-            return self.create(user=root_user, role=role, 
+            return self.create(user=root_user, role=role,
                                card_id=role, name=role,
-                               linked_account_types=[BASIC_ACCOUNT_TYPE,])
+                               linked_account_types=[BASIC_ACCOUNT_TYPE, ])
         except MultipleObjectsReturned:
             raise ValueError('More than one {} acc'.format(role))
 
@@ -143,33 +149,40 @@ class UserAccountManager(models.Manager):
         try:
             return User.objects.get(username='root', is_superuser=True)
         except User.DoesNotExist:
-            return User.objects.create_superuser(ROOT_USERNAME, 
+            return User.objects.create_superuser(ROOT_USERNAME,
                                                  ROOT_USERNAME, ROOT_PASSWORD)
 
     def get_inner_settlement_account(self):
-        return self.get_special_account_or_none(INNER_SETTLEMENT_ACCOUNT_ROLE)
+        '''Shotcut for getting inner settlement account'''
+        return self.get_special_account_or_none(
+            INNER_SETTLEMENT_ACCOUNT_ROLE)
 
     def get_external_load_money_account(self):
-        return self.get_special_account_or_none(EXTERNAL_LOAD_MONEY_ACCOUNT_ROLE)
+        '''Shotcut for getting load money account'''
+        return self.get_special_account_or_none(
+            EXTERNAL_LOAD_MONEY_ACCOUNT_ROLE)
 
     def get_external_settlement_account(self):
-        return self.get_special_account_or_none(EXTERNAL_SETTLEMENT_ACCOUNT_ROLE)
+        '''Shotcut for getting external settlement account'''
+        return self.get_special_account_or_none(
+            EXTERNAL_SETTLEMENT_ACCOUNT_ROLE)
 
     def get_revenue_account(self):
-        return self.get_special_account_or_none(REVENUE_ACCOUNT_ROLE)
+        '''Shotcut for getting revenue account'''
+        return self.get_special_account_or_none(
+            REVENUE_ACCOUNT_ROLE)
 
-    #TODO: cover getters with units
     def get_special_account_or_none(self, role):
+        '''Getter for arbitrary special account'''
         try:
             return self.get(role=role)
-        # let caller deside what to do if smth bad has happened
-        # caller shouldn't know what ind of "bad" occured
+        # let caller decide what to do if smth bad has happened
+        # caller shouldn't know what kind of "bad" occured
         # all errors are equal for him
         except ObjectDoesNotExist:
             return None
         except MultipleObjectsReturned:
             return None
-
 
 
 class UserAccountsUnion(models.Model):
@@ -182,13 +195,20 @@ class UserAccountsUnion(models.Model):
 
     # inner card_id should be sensible info.
     # so we user auto increment filed to identify user account instead
-    card_id = models.CharField(verbose_name='Account ID', max_length=CARD_ID_LENGTH, 
+    card_id = models.CharField(verbose_name='Account ID',
+                               max_length=CARD_ID_LENGTH,
                                unique=True)
-    created_at = models.DateTimeField(verbose_name='Created at', auto_now_add=True)
-    name = models.CharField(verbose_name='Name', max_length=255) # max possible length for mysql back end
-    user = models.ForeignKey('auth.User', verbose_name='Owner')
-    role = models.CharField(verbose_name='Role', max_length=2, 
-                            default=REAL_USER_ACCOUNT_ROLE, choices=ACCOUNT_ROLE_TYPES)
+    created_at = models.DateTimeField(
+        verbose_name='Created at', auto_now_add=True)
+    # max possible length for mysql back end
+    name = models.CharField(verbose_name='Name',
+                            max_length=255)
+    user = models.ForeignKey('auth.User',
+                             verbose_name='Owner')
+    role = models.CharField(verbose_name='Role',
+                            max_length=2,
+                            default=REAL_USER_ACCOUNT_ROLE,
+                            choices=ACCOUNT_ROLE_TYPES)
 
     objects = UserAccountManager()
 
@@ -199,7 +219,7 @@ class UserAccountsUnion(models.Model):
         - total amount (reserved + available) and available.
         '''
         return (self.real_amount, self.base_amount)
-   
+
     @property
     def real_amount(self):
         '''
@@ -229,7 +249,7 @@ class UserAccountsUnion(models.Model):
         return self._get_account_amount_by_type(RESERVED_ACCOUNT_TYPE)
 
     @property
-    def base_account(self):        
+    def base_account(self):
         '''
         Shortcut for base account, which stores currently avialable sum of money.
         '''
@@ -253,7 +273,8 @@ class UserAccountsUnion(models.Model):
         Helper for getting related account amount by account_type
         '''
         account = self._get_account_by_type(account_type)
-        if not account: return 0
+        if not account:
+            return 0
         return account.amount
 
     def get_amounts_for_ts(self, date_ts=None):
@@ -262,48 +283,60 @@ class UserAccountsUnion(models.Model):
         For non set date_ts returns current amount.
         Return two amounts: real_amount (base + reserved) and available amount (just base)
         '''
-        if not date_ts: return self.current_amounts_tuple
-        if is_in_future(date_ts): return self.current_amounts_tuple
+        if not date_ts:
+            return self.current_amounts_tuple
+        if is_in_future(date_ts):
+            return self.current_amounts_tuple
         start_day_date = to_start_day_from_ts(date_ts)
         date = date_from_ts(date_ts)
-        if self.created_at > date: return (0, 0)
+        if self.created_at > date:
+            return (0, 0)
         if self.created_at > start_day_date:
             # don't have any logs yet at this point
             base_amount, reserved_amount = (0, 0)
         else:
-            base_amount, reserved_amount = self._get_amounts_for_date(start_day_date)
-        base_amount_diff, reserved_amount_diff = self._roll_forward_in_time_range(start_day_date, date)
-        return (base_amount + base_amount_diff + reserved_amount + reserved_amount_diff), \
-               (base_amount + base_amount_diff)
+            base_amount, reserved_amount = self._get_amounts_for_date(
+                start_day_date)
+        base_amount_diff, reserved_amount_diff = \
+            self._roll_forward_in_time_range(start_day_date, date)
+        available_amount = base_amount + base_amount_diff
+        total_amount = available_amount + \
+            reserved_amount + reserved_amount_diff
+        return total_amount, \
+            available_amount
 
     def _get_amounts_for_date(self, start_day_date):
         '''
         Find amount for particular point at time.
         Don't check weather they exists or not.
         '''
-        nearest_accounts = self.accounts.filter(account_logs__date=start_day_date).\
-                                         values('account_type', 'account_logs__amount')
-        nearest_accounts = {account['account_type']: account['account_logs__amount']
-                            for account in nearest_accounts}
+        nearest_accounts = self.accounts.\
+            filter(account_logs__date=start_day_date).\
+            values('account_type', 'account_logs__amount')
+        nearest_accounts = {
+            account['account_type']: account['account_logs__amount']
+            for account in nearest_accounts}
         return nearest_accounts.get(BASIC_ACCOUNT_TYPE, 0), \
-               nearest_accounts.get(RESERVED_ACCOUNT_TYPE, 0)
+            nearest_accounts.get(RESERVED_ACCOUNT_TYPE, 0)
 
     def _roll_forward_in_time_range(self, begin_date, end_date):
         '''
         Calculates the result of all transfers in given time period
         for all linked accounts
         '''
-
+        time_range = [begin_date, end_date]
+        account_ids = [a.id for a in self.accounts.all()]
         transfer_diffs = Transfer.objects.\
-            filter(transaction__created_at__range=[begin_date, end_date]).\
-            filter(account_id__in=[a.id for a in self.accounts.all()]).\
+            filter(transaction__created_at__range=time_range).\
+            filter(account_id__in=account_ids).\
             values('account__account_type').\
-            annotate(amount_diff = models.Sum('amount'))
-        transfer_diffs = {t['account__account_type']:t['amount_diff'] for t in transfer_diffs}
+            annotate(amount_diff=models.Sum('amount'))
+        transfer_diffs = {
+            t['account__account_type']: t['amount_diff']
+            for t in transfer_diffs}
         return transfer_diffs.get(BASIC_ACCOUNT_TYPE, 0), \
-               transfer_diffs.get(RESERVED_ACCOUNT_TYPE, 0)
+            transfer_diffs.get(RESERVED_ACCOUNT_TYPE, 0)
 
-    #TODO: coveer with tests
     def get_transactions(self, **kwargs):
         '''
         Get all transactions for account in time range
@@ -312,23 +345,27 @@ class UserAccountsUnion(models.Model):
         - end_ts
         All parameters are not required
         '''
+        KWARGS_TO_FILTER_PARAMS = {
+            'end_ts': 'transaction__created_at__lt',
+            'begin_ts': 'transaction__created_at__gte'}
         filter_params = {}
-        if kwargs.get('begin_ts'):
-            filter_params['transaction__created_at__gte'] = date_from_ts(
-                                                                kwargs.get('begin_ts'))
-        if kwargs.get('end_ts'):
-            filter_params['transaction__created_at__lt'] = date_from_ts(
-                                                                kwargs.get('end_ts'))
-
+        for ts_key, filter_param in KWARGS_TO_FILTER_PARAMS.items():
+            if not kwargs.get(ts_key):
+                continue
+            filter_params[filter_param] = date_from_ts(
+                kwargs.get(ts_key))
+        transfers = self.base_account.transfers.filter(**filter_params)
         transaction_ids = [
-            transfer.transaction_id 
-            for transfer in self.base_account.transfers.filter(**filter_params)]
-
+            transfer.transaction_id
+            for transfer in transfers]
+        transfers_for_display_qs = Transfer.objects.filter(
+            account_id=self.base_account.id)
         return Transaction.objects.prefetch_related(
-                    models.Prefetch('transfers',
-                           queryset=Transfer.objects.filter(account_id=self.base_account.id))
-                    ).filter(id__in=transaction_ids).exclude(status=TRANSACTION_AUTHORIZATION_STATUS).\
-                                                     order_by('created_at')  
+            models.Prefetch('transfers',
+                            queryset=transfers_for_display_qs)
+        ).filter(id__in=transaction_ids).\
+            exclude(status=TRANSACTION_AUTHORIZATION_STATUS).\
+            order_by('created_at')
 
 
 class Account(models.Model):
@@ -338,15 +375,21 @@ class Account(models.Model):
     All user's money is stored in basic account. Reserved account holds info about reservations       
     '''
 
-    account_type = models.CharField(verbose_name="Account type", max_length=1, choices=ACCOUNT_TYPES)
-    amount = models.DecimalField(verbose_name='Amount', default=0.0, **AMOUNT_PRECISION_SETTINGS)
-    user_account = models.ForeignKey(UserAccountsUnion, related_name='accounts', verbose_name='User account')
+    account_type = models.CharField(
+        verbose_name="Account type", max_length=1, choices=ACCOUNT_TYPES)
+    amount = models.DecimalField(
+        verbose_name='Amount', default=0.0,
+        **AMOUNT_PRECISION_SETTINGS)
+    user_account = models.ForeignKey(
+        UserAccountsUnion,
+        related_name='accounts', verbose_name='User account')
 
     def modify_amount(self, amount):
         '''
-        Just modifies amount without performing any additional checks on sums
+        Just modifies amount 
+        without performing any additional checks on sums
         '''
         self.amount = models.F('amount') + amount
         self.save(update_fields=['amount'])
-        self.refresh_from_db() # to get rid of F() effect and prevent any double changes
-
+        # to get rid of F() effect and prevent any double changes
+        self.refresh_from_db()

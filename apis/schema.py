@@ -2,14 +2,10 @@
 
 class SchemaAPI:
 
-    '''
-    Stub for API with schema communication
-    '''
+    '''Stub for API with schema communication'''
     
     def transfer_debts_to_schema(self, *args, **kwargs):
-        '''
-        Stub method for transfering money at the settlement 
-        '''
+        '''Stub method for transfering money at the settlement'''
         pass
 
     class SchemaError(ValueError):
@@ -21,9 +17,6 @@ class SchemaAPI:
         
         @property
         def info(self):
-            '''
-            Shortcut for error info
-            '''
+            '''Shortcut for error info'''
             return self.args[0]        
-        
 

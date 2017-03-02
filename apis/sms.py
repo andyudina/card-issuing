@@ -13,5 +13,4 @@ class SmsAPI:
         Should be top priority alarms.
         '''
         pass
-  
  

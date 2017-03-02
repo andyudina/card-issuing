@@ -1,13 +1,15 @@
+'''Tests load money command'''
+
 from django.core.management import call_command
 from django.test import TestCase
 
 from utils.tests import CreateAccountMixin, \
-                        TestTransactionMixin
+    TestTransactionMixin
 
 
-class LoadMoneyCommandTestCase(CreateAccountMixin,
-                               TestTransactionMixin, TestCase):
-   
+class LoadMoney(CreateAccountMixin,
+                TestTransactionMixin, TestCase):
+
     '''
     Functional test for load money management command.
     Checks transfer from "outer" source and that user amount was increased
@@ -16,14 +18,15 @@ class LoadMoneyCommandTestCase(CreateAccountMixin,
     def setUp(self):
         self.user_account = self.create_account()
         self.create_load_money_account()
-    
+
     def test__user_base_amount_increased(self):
         load_money_amount = 10.0
-        call_command('load_money', self.user_account.card_id, load_money_amount, 'EUR')
+        call_command(
+            'load_money', self.user_account.card_id, load_money_amount, 'EUR')
         self.check_account_result_amount(
             self.user_account.base_account.id, load_money_amount)
 
-    ## currency tests - not implemented
+    # currency tests - not implemented
     def test__currency_exchanged__successfull(self):
         pass
 

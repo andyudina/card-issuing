@@ -1,12 +1,17 @@
+'''Management command for loading money to user account'''
+
 import decimal
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 
 from apps.processing.models import Transaction, UserAccountsUnion
 from currency_converter.converter import Converter
 
 
 class Command(BaseCommand):
+
+    '''Loads money to user account and logs it as transfer'''
+    
     help = '''Loads money to user account
               Usage: load_money <cardholder> <amount> <currency>'''
 
@@ -17,19 +22,20 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            amount = Converter().get_amount_for_save(options.get('amount'), 
+            amount = Converter().get_amount_for_save(options.get('amount'),
                                                      options.get('currency'))
-        except Converter.ConverterError as e:
+        except Converter.ConverterError:
             print('Can\'t convert currencies')
             return
         try:
-            user_account = UserAccountsUnion.objects.get(card_id=options.get('card_id'))
+            user_account = UserAccountsUnion.objects.get(
+                card_id=options.get('card_id'))
         except UserAccountsUnion.DoesNotExist:
-            print('User with card_id "{}" does not exist'.\
-                   format(options.get('card_id')))
+            print('User with card_id "{}" does not exist'.
+                  format(options.get('card_id')))
             return
         load_money_account = UserAccountsUnion.objects.get_external_load_money_account()
-        transaction = Transaction.objects.load_money(options.get('amount'),
-                                          load_money_account.base_account,
-                                          user_account.base_account)
+        transaction = Transaction.objects.load_money(amount,
+                                                     load_money_account.base_account,
+                                                     user_account.base_account)
         transaction.update_descriptions(options)

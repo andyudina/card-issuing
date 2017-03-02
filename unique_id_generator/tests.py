@@ -10,7 +10,9 @@ from unique_id_generator.generator import UniqueIDGenerator
 
 
 class GeneratorTestCase(unittest.TestCase):
-
+    
+    '''Stub for generator test case'''
+    
     def test__get_next_with_length__length_is_ok(self):
         pass
 

@@ -2,9 +2,7 @@
 
 class SendgridAPI:
 
-    '''
-    Stub alarming by emails.
-    '''
+    '''Stub for alarming by emails'''
 
     def alarm_schema_err(self, *args, **kwargs):
         '''
@@ -12,5 +10,4 @@ class SendgridAPI:
         Should be top priority alarms.
         '''
         pass
-  
  

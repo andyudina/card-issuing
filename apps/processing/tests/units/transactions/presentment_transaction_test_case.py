@@ -1,9 +1,10 @@
+'''Tests presentment transaction creation'''
+
 import decimal
 from unittest import skip
 
 from apps.processing.models.transactions import Transaction, IssuerTransactionError, \
-                                                TRANSACTION_PRESENTMENT_STATUS, \
-                                                TRANSACTION_AUTHORIZATION_STATUS
+                                                TRANSACTION_PRESENTMENT_STATUS
 from utils.tests import TransactionBaseTestCase
 
 

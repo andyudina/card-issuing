@@ -22,7 +22,8 @@ class Converter:
         '''
         if source_currency == DEFAULT_CURRENCY:
             return amount
-        return amount * self.get_exhange_rate(DEFAULT_CURRENCY, source_currency)
+        return amount * \
+            self.get_exhange_rate(DEFAULT_CURRENCY, source_currency)
 
     def get_exhange_rate(self, to_currency, from_currency):
         '''
@@ -30,7 +31,8 @@ class Converter:
         Incapsulates response cache mechanism and deals with API errors
         '''
         rate = self._get_rate_from_cache(to_currency, from_currency)
-        if rate: return rate
+        if rate:
+            return rate
         return self._get_rate_from_api(to_currency, from_currency)
 
     def _get_rate_from_cache(self, to_currency, from_currency):
@@ -50,11 +52,11 @@ class Converter:
             rate = CurrencyAPI().get_exchange_rate(to_currency, from_currency)
             self._update_in_cache(rate, to_currency, from_currency)
             return rate
-        except CurrencyAPI.CurrencyAPIError as e:
-            self._alarm_api_error(e.info)
+        except CurrencyAPI.CurrencyAPIError as error:
+            self._alarm_api_error(error.info)
             raise Converter.ConverterError('api_error')
 
-    def _update_in_cache(self, rate, 
+    def _update_in_cache(self, rate,
                          to_currency, from_currency):
         '''
         Updates currency rate in cache
@@ -68,6 +70,7 @@ class Converter:
         pass
 
     class ConverterError(ValueError):
+
         '''
         Error class for convertation API
         '''
@@ -75,5 +78,3 @@ class Converter:
         @property
         def info(self):
             return self.args[0]
-
-

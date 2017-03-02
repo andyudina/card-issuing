@@ -2,8 +2,6 @@
 
 from django.test import TestCase
 
-from apps.processing.models.transactions import Transaction
-
 
 class GetReserveAmount(TestCase):
 
@@ -19,5 +17,3 @@ class GetReserveAmount(TestCase):
 
     def test__valid_non_decimal_amount__valid_return(self):
         pass
-
-        

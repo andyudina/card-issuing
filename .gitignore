@@ -17,7 +17,7 @@ gen
 venv/
 
 # Security
-localsettings.py
+local_settings.py
 
 # Logs
 log

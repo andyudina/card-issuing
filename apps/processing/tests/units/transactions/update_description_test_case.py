@@ -1,9 +1,9 @@
+'''Tests transactions descriptions forming and updating'''
+
 import decimal
 from base64 import b64decode
 from json import loads
 from unittest import skip
-
-from django.test import TestCase
 
 from utils import dict_to_base64
 from utils.tests import TransactionBaseTestCase
@@ -11,9 +11,7 @@ from utils.tests import TransactionBaseTestCase
 
 class UpdateDescription(TransactionBaseTestCase):
 
-    '''
-    Test for updating sdescriptions and generating base64
-    '''
+    '''Test for updating sdescriptions and generating base64'''
 
     def setUp(self):
         self.transaction = self.create_transaction()
@@ -22,9 +20,7 @@ class UpdateDescription(TransactionBaseTestCase):
     # Helpers
     ##
     def check_base64_dict(self, base64str, dict_to_compare):
-        '''
-        Converts base64str to dict and compares it with initial
-        '''
+        '''Converts base64str to dict and compares it with initial'''
         result_dict = loads(b64decode(
                             base64str.encode()).decode())
         self.assertDictEqual(result_dict, dict_to_compare)
@@ -63,5 +59,3 @@ class UpdateDescription(TransactionBaseTestCase):
         initial_dict = {'test': decimal.Decimal('10.0')}
         base64str = dict_to_base64(initial_dict)
         self.check_base64_dict(base64str, {'test': '10.0'})
-
-

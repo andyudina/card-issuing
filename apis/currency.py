@@ -5,11 +5,9 @@ class CurrencyAPI:
     '''
     Stub for API with schema communication
     '''
-    
+
     def get_exchange_rate(self, *args, **kwargs):
-        '''
-        Stub method for looking up currencies 
-        '''
+        '''Stub method for looking up currencies'''
         return 1
 
     class CurrencyAPIError(ValueError):
@@ -21,9 +19,6 @@ class CurrencyAPI:
         
         @property
         def info(self):
-            '''
-            Shortcut for error info
-            '''
+            '''Shortcut for error info'''
             return self.args[0]        
         
-

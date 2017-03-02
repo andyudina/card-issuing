@@ -1,0 +1,1 @@
+'''Stub for "on-the-fly" currency convertation'''

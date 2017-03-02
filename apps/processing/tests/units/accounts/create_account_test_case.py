@@ -1,16 +1,15 @@
-import datetime
+'''Tests account creation business logic'''
 
 from django.test import TestCase
 
 from apps.processing.models.accounts import UserAccountsUnion, \
-                                            BASIC_ACCOUNT_TYPE, \
-                                            REVENUE_ACCOUNT_ROLE
+    BASIC_ACCOUNT_TYPE, \
+    REVENUE_ACCOUNT_ROLE
 from card_issuing_excercise.settings import ROOT_USERNAME
 from utils.tests import CreateAccountMixin
 
 
-
-class CreateNewAccount(CreateAccountMixin, 
+class CreateNewAccount(CreateAccountMixin,
                        TestCase):
 
     '''
@@ -28,32 +27,35 @@ class CreateNewAccount(CreateAccountMixin,
         '''
         Helper for creating basic account with both links
         '''
-        return UserAccountsUnion.objects.create(user=self.user, 
-                                                card_id=kwargs.get('card_id', 'TESTID'))
+        return UserAccountsUnion.objects.create(
+            user=self.user,
+            card_id=kwargs.get('card_id', 'TESTID'))
 
-    def create_revenue_account(self, **kwargs):
+    def create_revenue_account(self):
         return UserAccountsUnion.objects.\
-                                 create_special_account(REVENUE_ACCOUNT_ROLE)
+            create_special_account(REVENUE_ACCOUNT_ROLE)
 
     def create_account_with_one_link(self, **kwargs):
-        return UserAccountsUnion.objects.create(user=self.user, 
-                                                card_id=kwargs.get('card_id', 'TESTID2'),
-                                                linked_account_types=[BASIC_ACCOUNT_TYPE,])
+        account_params = {
+            'user': self.user,
+            'card_id': kwargs.get('card_id', 'TESTID2'),
+            'linked_account_types': [BASIC_ACCOUNT_TYPE, ]}
+        return UserAccountsUnion.objects.create(**account_params)
 
     def check_account_has_link(self, user_account, link_type):
         '''
         Check that specific account link exists
         '''
-        self.assertTrue(user_account.accounts.\
-                                     filter(account_type=link_type).exists())
+        self.assertTrue(user_account.accounts.
+                        filter(account_type=link_type).exists())
 
-    def check_account_has_proper_links_number(self, 
+    def check_account_has_proper_links_number(self,
                                               user_account, links_number):
         '''
         Check account links number
         '''
         self.assertEqual(
-             user_account.accounts.count(), links_number)
+            user_account.accounts.count(), links_number)
 
     ##
     # Testers
@@ -80,18 +82,17 @@ class CreateNewAccount(CreateAccountMixin,
         self.assertEqual(account.user.username, ROOT_USERNAME)
 
     def test__create_duplicate_special_account__new_not_created(self):
-        for try_number in range(2):
-            self.create_revenue_account()    
+        for _ in range(2):
+            self.create_revenue_account()
         self.assertEqual(
-            UserAccountsUnion.objects.filter(role=REVENUE_ACCOUNT_ROLE).count(), 1)
-
+            UserAccountsUnion.objects.
+            filter(role=REVENUE_ACCOUNT_ROLE).count(), 1)
 
     def test__create_new_user_account_with_specified_type__link_created(self):
         account = self.create_account_with_one_link()
-        self.check_account_has_link(account, BASIC_ACCOUNT_TYPE)
+        self.check_account_has_link(
+            account, BASIC_ACCOUNT_TYPE)
 
     def test__create_new_user_account_with_specified_type__has_only_one_link(self):
         account = self.create_account_with_one_link()
         self.check_account_has_proper_links_number(account, 1)
-
-

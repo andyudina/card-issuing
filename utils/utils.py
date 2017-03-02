@@ -1,9 +1,13 @@
+'''Misc utils'''
+
 import base64
 import datetime
 from json import loads, dumps
 import time
 
-#TODO: names with datetime_to_timestamp should be symmetrical
+# TODO: names with datetime_to_timestamp should be symmetrical
+
+
 def date_from_ts(ts):
     '''
     Shortcut for ts to datetime obj converting
@@ -42,6 +46,8 @@ def datetime_to_timestamp(dt):
     return time.mktime(dt.timetuple())
 
 # TODO: refactor layout
+
+
 def almost_equal(value_1, value_2, accuracy=10**-4, precision=4):
     '''
     Helper for compairing decimals.
@@ -62,12 +68,11 @@ def dict_to_base64(dict_to_convert):
     '''
     Convert dict as base64 string
     '''
-    if not dict_to_convert: return ''
+    if not dict_to_convert:
+        return ''
     # convert all values to its str representatation
     dict_to_convert = {key: str(value)
                        for key, value in dict_to_convert.items()}
     return base64.b64encode(
-                  dumps(dict_to_convert).encode('utf-8')).\
-                  decode('ascii')
-
-                  
+        dumps(dict_to_convert).encode('utf-8')).\
+        decode('ascii')

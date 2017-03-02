@@ -2,7 +2,10 @@
 
 import unittest
 
+
 class ConverterTestCase(unittest.TestCase):
+
+    '''Stub test case for converter'''
 
     def setUp(self):
         # mock external service

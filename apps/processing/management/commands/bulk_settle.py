@@ -1,6 +1,8 @@
+''' Management command for bulk settlement and outdated transactions rollback'''
+
 import datetime
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 
 from apis import SchemaAPI, TelegramAPI, \
     SmsAPI, SendgridAPI
@@ -11,6 +13,12 @@ from utils import to_start_day
 
 
 class Command(BaseCommand):
+
+    '''
+    Sends settlement debts to schema in bulk 
+    and rollbacks outdated transactions
+    '''
+
     help = 'Batch process for settlements and outdated transactions management'
 
     def handle(self, *args, **kwargs):
@@ -35,8 +43,8 @@ class Command(BaseCommand):
             self._log_settlement_transaction(
                 inner_settlement_account=inner_settlement_account,
                 external_settlement_account=external_settlement_account)
-        except SchemaAPI.SchemaError as e:
-            self._alarm_schema_error(e.info)
+        except SchemaAPI.SchemaError as error:
+            self._alarm_schema_error(error.info)
 
     def _log_settlement_transaction(self, **kwargs):
         '''
@@ -44,7 +52,7 @@ class Command(BaseCommand):
         '''
         # so error-prone logic. should be rewrighten after requirements are
         # specified
-        transaction = Transaction.objects.settle_day_transactions(
+        Transaction.objects.settle_day_transactions(
             kwargs.get('inner_settlement_account').base_amount,
             kwargs.get('inner_settlement_account').base_account,
             kwargs.get('external_settlement_account').base_account)
@@ -74,6 +82,5 @@ class Command(BaseCommand):
         Get date all transactions before which are outdated
         '''
         return to_start_day(
-            datetime.datetime.now() - \
+            datetime.datetime.now() -
             datetime.timedelta(days=AUTHORISATION_TRANSACTION_TTL))
-        

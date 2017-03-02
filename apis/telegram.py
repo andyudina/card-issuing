@@ -12,5 +12,4 @@ class TelegramAPI:
         Should be top priority alarms.
         '''
         pass
-  
  

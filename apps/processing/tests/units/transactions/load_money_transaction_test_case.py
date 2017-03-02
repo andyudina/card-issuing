@@ -2,8 +2,6 @@
 
 from django.test import TestCase
 
-from apps.processing.models.transactions import Transaction
-
 
 class LoadMoneyTransaction(TestCase):
 

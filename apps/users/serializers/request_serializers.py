@@ -1,3 +1,5 @@
+'''Serializes public user API requests'''
+
 from rest_framework import serializers
 
 
@@ -8,7 +10,7 @@ class BalanceRequestSerializer(serializers.Serializer):
     Just does JSON parsing.
     '''
 
-    ts = serializers.IntegerField(required=False) # timestamp
+    ts = serializers.IntegerField(required=False)  # timestamp
 
 
 class TransactionRequestSerializer(serializers.Serializer):
@@ -18,5 +20,5 @@ class TransactionRequestSerializer(serializers.Serializer):
     Just does JSON parsing.
     '''
 
-    begin_ts = serializers.IntegerField(required=False) # timestamp
-    end_ts = serializers.IntegerField(required=False) # timestamp
+    begin_ts = serializers.IntegerField(required=False)  # timestamp
+    end_ts = serializers.IntegerField(required=False)  # timestamp

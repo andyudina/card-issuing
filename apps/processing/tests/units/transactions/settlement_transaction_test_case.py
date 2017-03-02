@@ -2,8 +2,6 @@
 
 from django.test import TestCase
 
-from apps.processing.models.transactions import Transaction
-
 
 class SettlementTransaction(TestCase):
 
@@ -22,4 +20,3 @@ class SettlementTransaction(TestCase):
 
     def test__duplicate_transaction__settlement_amount_not_modified(self):
         pass
-        

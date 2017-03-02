@@ -1,3 +1,5 @@
+''' Stub for external API wrappers '''
+
 from .currency import CurrencyAPI
 from .sendgrid import SendgridAPI
 from .sms import SmsAPI

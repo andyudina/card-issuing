@@ -1,5 +1,11 @@
+''' 
+Creates superuser and service accounts.
+Should be ran before start up
+'''
+
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
+from django.db import IntegrityError
 
 from apps.processing.models import UserAccountsUnion
 from card_issuing_excercise.settings import ROOT_USERNAME, \
@@ -7,6 +13,9 @@ from card_issuing_excercise.settings import ROOT_USERNAME, \
 
 
 class Command(BaseCommand):
+    
+    '''Creates service accounts/users on startup'''
+
     help = 'Create necessary models on startup'
 
     def handle(self, *args, **options):

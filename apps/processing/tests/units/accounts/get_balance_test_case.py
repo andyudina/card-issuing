@@ -1,21 +1,24 @@
+'''Tests user balance getter in different time points'''
+
 import datetime
 
 from django.test import TestCase
 
 from apps.processing.models.accounts import BASIC_ACCOUNT_TYPE, \
-                                            REVENUE_ACCOUNT_ROLE
-from apps.processing.models.transactions import TRANSACTION_AUTHORIZATION_STATUS, \
-                                                TRANSACTION_LOAD_MONEY_STATUS
+    REVENUE_ACCOUNT_ROLE
+from apps.processing.models.transactions import \
+    TRANSACTION_AUTHORIZATION_STATUS, \
+    TRANSACTION_LOAD_MONEY_STATUS
 from utils import datetime_to_timestamp, to_start_day
 from utils.tests import CreateAccountMixin, \
-                        CreateTransactionMixin
+    CreateTransactionMixin
 
 
-class GetUserBalance(CreateAccountMixin, 
+class GetUserBalance(CreateAccountMixin,
                      CreateTransactionMixin, TestCase):
 
     '''
-    Test user amount method, which returns tuple of two fields: 
+    Tests user amount method, which returns tuple of two fields: 
     - total_amount (available + reserved)
     - available_amount
     '''
@@ -56,9 +59,12 @@ class GetUserBalance(CreateAccountMixin,
         self.reserved_account = self.user_account.reserved_account
 
     def create_load_data_transaction(self):
-        self.add_transfer(transaction_code='LTEST', status=TRANSACTION_LOAD_MONEY_STATUS,
-                          account=self.base_account, amount=self.base_amount + self.reserved_amount,
-                          datetime=self.day_before_yesterday + datetime.timedelta(hours=1))
+        self.add_transfer(transaction_code='LTEST',
+                          status=TRANSACTION_LOAD_MONEY_STATUS,
+                          account=self.base_account,
+                          amount=self.base_amount + self.reserved_amount,
+                          datetime=self.day_before_yesterday +
+                                   datetime.timedelta(hours=1))
 
     def create_auth_transaction_for_first_day(self):
         '''
@@ -66,14 +72,17 @@ class GetUserBalance(CreateAccountMixin,
         For testing past amount without logs
         '''
         transaction_code = 'A1TEST'
-        transaction_created_at = self.day_before_yesterday + datetime.timedelta(hours=3)
-        self.add_transfer(transaction_code=transaction_code, 
+        transaction_created_at = self.day_before_yesterday + \
+            datetime.timedelta(hours=3)
+        self.add_transfer(transaction_code=transaction_code,
                           status=TRANSACTION_AUTHORIZATION_STATUS,
-                          account=self.base_account, amount=-self.transfer_amount,
+                          account=self.base_account,
+                          amount=-self.transfer_amount,
                           datetime=transaction_created_at)
-        self.add_transfer(transaction_code=transaction_code, 
+        self.add_transfer(transaction_code=transaction_code,
                           status=TRANSACTION_AUTHORIZATION_STATUS,
-                          account=self.reserved_account, amount=self.transfer_amount,
+                          account=self.reserved_account,
+                          amount=self.transfer_amount,
                           datetime=transaction_created_at)
 
     def create_auth_transaction_for_second_day(self):
@@ -83,23 +92,24 @@ class GetUserBalance(CreateAccountMixin,
         '''
         transaction_code = 'A2TEST'
         transaction_created_at = self.yesterday + datetime.timedelta(hours=1)
-        self.add_transfer(transaction_code=transaction_code, 
+        self.add_transfer(transaction_code=transaction_code,
                           status=TRANSACTION_AUTHORIZATION_STATUS,
-                          account=self.base_account, 
+                          account=self.base_account,
                           amount=-self.transfer_amount,
                           datetime=transaction_created_at)
-        self.add_transfer(transaction_code=transaction_code, 
+        self.add_transfer(transaction_code=transaction_code,
                           status=TRANSACTION_AUTHORIZATION_STATUS,
-                          account=self.reserved_account, 
+                          account=self.reserved_account,
                           amount=self.transfer_amount,
                           datetime=transaction_created_at)
 
     def create_account_logs_for_yesterday(self):
         log_date = self.yesterday.date()
         self.base_account.account_logs.create(
-             date=log_date, amount=self.transfer_amount + self.base_amount)
+            date=log_date,
+            amount=self.transfer_amount + self.base_amount)
         self.reserved_account.account_logs.create(
-             date=log_date, amount=self.transfer_amount)
+            date=log_date, amount=self.transfer_amount)
 
     # Shortcuts
 
@@ -107,8 +117,10 @@ class GetUserBalance(CreateAccountMixin,
         '''
         Shortcut for account update
         '''
-        self.user_account.accounts.filter(account_type=acc_type).\
-                                   update(amount=amount)
+        self.user_account.accounts.\
+            filter(account_type=acc_type).\
+            update(amount=amount)
+
     def get_day_before(self, date):
         '''
         Get day before date in args 
@@ -132,7 +144,7 @@ class GetUserBalance(CreateAccountMixin,
         Shortcut for amount for second usage day
         '''
         first_day_ts = datetime_to_timestamp(
-                           self.yesterday + datetime.timedelta(hours=2))
+            self.yesterday + datetime.timedelta(hours=2))
         return self.user_account.get_amounts_for_ts(first_day_ts)
 
     def get_past_amount_for_first_day(self):
@@ -140,7 +152,7 @@ class GetUserBalance(CreateAccountMixin,
         Shortcut for amount for firts usage day
         '''
         second_day_ts = datetime_to_timestamp(
-                            self.day_before_yesterday + datetime.timedelta(hours=4))
+            self.day_before_yesterday + datetime.timedelta(hours=4))
         return self.user_account.get_amounts_for_ts(second_day_ts)
 
     ##
@@ -150,22 +162,22 @@ class GetUserBalance(CreateAccountMixin,
     def test__get_current_amount__total_amount_is_ok(self):
         amount_tuple = self.user_account.get_amounts_for_ts()
         self.assertEqual(
-             self.get_total_amount(amount_tuple), 15.0)
+            self.get_total_amount(amount_tuple), 15.0)
 
     def test__get_current_amount__available_amount_is_ok(self):
         amount_tuple = self.user_account.get_amounts_for_ts()
         self.assertEqual(
-             self.get_available_amount(amount_tuple), 10.0)
+            self.get_available_amount(amount_tuple), 10.0)
 
     def test__get_past_amount__total_amount_is_ok(self):
         amount_tuple = self.get_past_amount_for_second_day()
         self.assertEqual(
-             self.get_total_amount(amount_tuple), 15.0)
+            self.get_total_amount(amount_tuple), 15.0)
 
     def test__get_past_amount__available_amount_is_ok(self):
         amount_tuple = self.get_past_amount_for_second_day()
         self.assertEqual(
-             self.get_available_amount(amount_tuple), 10.0)
+            self.get_available_amount(amount_tuple), 10.0)
 
     def test__get_past_amount_for_first_usage_day__total_amount_is_ok(self):
         amount_tuple = self.get_past_amount_for_first_day()
@@ -176,5 +188,3 @@ class GetUserBalance(CreateAccountMixin,
         amount_tuple = self.get_past_amount_for_first_day()
         self.assertEqual(
             self.get_available_amount(amount_tuple), 12.5)
-
-
