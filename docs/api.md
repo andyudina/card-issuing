@@ -52,19 +52,19 @@
   - *Example:*
  ```json
     {
-        'count': 1,
-        'next': None,
-        'previous': None,
-        'results': [
+        "count": 1,
+        "next": null,
+        "previous": null,
+        "results": [
                 {
-                    'created_at': 1488473323,
-                    'id': 1,
-                    'status': 'p',
-                    'human_readable_description': 'Awesome Air Jordan sneakers.',
-                    'transfers': [
+                    "created_at": 1488473323,
+                    "id": 1,
+                    "status": 'p',
+                    "human_readable_description": "Awesome Air Jordan sneakers.",
+                    "transfers": [
                         {
-                            'amount': '91.00'
-                            'id': 1
+                            "amount": "91.00"
+                            "id": 1
                         }
                     ]
                 }
@@ -103,8 +103,8 @@
   - *Example*
 ```json
 {
-  'available_amount': '91.01',
-  'total_amount': '10.21'
+  "available_amount": "91.01",
+  "total_amount": "10.21"
 }
 ```
   - *Description:*
