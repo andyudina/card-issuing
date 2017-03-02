@@ -28,8 +28,17 @@ INSTALLED_APPS = [
 
     'rest_framework',
 
-    'apps.processing', # handles all the money processing and interactions with the Schema
-    'apps.users',      # handles clients interactions
+    # wrapps external apis
+    'card_issuing_excercise.apps.apis',
+    # handles currency convertations
+    'card_issuing_excercise.apps.currency_converter',
+    # handles all the money processing and interactions with the Schema
+    'card_issuing_excercise.apps.processing',
+    # generates unique sequences-- used in transactions
+    'card_issuing_excercise.apps.unique_id_generator',
+    # handles clients interactions
+    'card_issuing_excercise.apps.users',
+    # no need in managing misc utils by django
 ]
 
 MIDDLEWARE = [
