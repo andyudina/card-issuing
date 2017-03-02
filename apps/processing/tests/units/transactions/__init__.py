@@ -5,3 +5,4 @@ from .load_money_transaction_test_case import LoadMoneyTransaction
 from .outdated_transaction_test_case import RollbackNonPresentmentTransaction
 from .presentment_transaction_test_case import PresentmentTransaction
 from .settlement_transaction_test_case import SettlementTransaction
+from .update_description_test_case import UpdateDescription

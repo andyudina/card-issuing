@@ -14,7 +14,7 @@ from utils.tests import TransactionBaseTestCase
 class SettlementTestCase(TransactionBaseTestCase):
    
     '''
-    Functional settlement management command.
+    Functional test for ettlement management.
     Checks transfers from settlement account to "outer" Schema account and
     that all outdated transactions were rollbacked
     '''

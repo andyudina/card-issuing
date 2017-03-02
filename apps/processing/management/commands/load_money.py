@@ -29,6 +29,7 @@ class Command(BaseCommand):
                    format(options.get('card_id')))
             return
         load_money_account = UserAccountsUnion.objects.get_external_load_money_account()
-        Transaction.objects.load_money(options.get('amount'),
-                                       load_money_account.base_account,
-                                       user_account.base_account)
+        transaction = Transaction.objects.load_money(options.get('amount'),
+                                          load_money_account.base_account,
+                                          user_account.base_account)
+        transaction.update_descriptions(options)

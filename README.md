@@ -88,6 +88,8 @@ WHAT WENT OUT OF SCOPE:
 - Perfomance optionizations were completely skipped, but marked in TODOs
 - Only public methods of all classes were covered tests.
 - Monitorings: all 500 err, APIS, transactions quantity should be monitored
+- There is no support for transfering btw users accounts - only through schema. 
+  Though core supports this, API is not implemented.
 
 ROADMAP:
 28.02:

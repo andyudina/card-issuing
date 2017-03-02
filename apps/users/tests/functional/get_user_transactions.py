@@ -75,6 +75,7 @@ class GetUserTransactionsTestCase(UserAPITestCase,
                          'created_at': datetime_to_timestamp(self.presentment_transaction.created_at),
                          'id': self.presentment_transaction.id,
                          'status': TRANSACTION_PRESENTMENT_STATUS,
+                         'human_readable_description': None,
                          'transfers': [
                             {
                                 'amount': self.get_amount_repr(self.transfer_amount),

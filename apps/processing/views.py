@@ -15,8 +15,8 @@ from currency_converter.converter import Converter
 class SchemaWebHook(APIView):
 
     '''
-        Handles payment requests from the Schema.
-        For both authorisation and presentment requests.
+    Handles payment requests from the Schema.
+    For both authorisation and presentment requests.
     '''
     
     parser_classes = (JSONParser,)

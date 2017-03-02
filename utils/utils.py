@@ -1,3 +1,4 @@
+import base64
 import datetime
 from json import loads, dumps
 import time
@@ -55,3 +56,18 @@ def to_dict(input_ordered_dict):
     Coverts ordered dict to dict
     '''
     return loads(dumps(input_ordered_dict))
+
+
+def dict_to_base64(dict_to_convert):
+    '''
+    Convert dict as base64 string
+    '''
+    if not dict_to_convert: return ''
+    # convert all values to its str representatation
+    dict_to_convert = {key: str(value)
+                       for key, value in dict_to_convert.items()}
+    return base64.b64encode(
+                  dumps(dict_to_convert).encode('utf-8')).\
+                  decode('ascii')
+
+                  

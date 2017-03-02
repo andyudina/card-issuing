@@ -6,6 +6,7 @@ from django.db import models, \
 
 from card_issuing_excercise.settings import AUTHORISATION_OVERHEAD
 from unique_id_generator.generator import UniqueIDGenerator
+from utils import dict_to_base64
 
 
 TRANSACTION_ID_LENGTH = 9
@@ -282,12 +283,29 @@ class Transaction(models.Model):
         account.modify_amount(amount)
         self.transfers.create(account=account, amount=amount)
  
-    def update_descriptions(self, shema_json):
+    # Update descriptions logic
+    # Was deleberately taken out form transaction generation
+    # As transaction manager should know how to create transaction
+    # nd transaction itself is responsible for displaying to user
+    def update_descriptions(self, info_in_json):
         '''
         Forms short description for user
         And saves whole json in base64
         '''
-        pass
+        self.human_readable_description = self.generate_human_readable_description(
+                                               info_in_json=info_in_json)
+        # TODO: can be non utf-8 encodings
+        # we should manage encoding according to our headers
+        self.base64_description = dict_to_base64(info_in_json)
+        self.save(update_fields=['human_readable_description', 'base64_description'])
+
+    #TODO:
+    def generate_human_readable_description(self, **kwargs):
+        '''
+        Stub for generationg user dscription according to transaction state
+        фnd input info
+        '''
+        return self.get_status_display()
 
     class Meta:
         unique_together = ('code', 'status')
