@@ -63,7 +63,7 @@
                     "human_readable_description": "Awesome Air Jordan sneakers.",
                     "transfers": [
                         {
-                            "amount": "91.00"
+                            "amount": "91.00",
                             "id": 1
                         }
                     ]
