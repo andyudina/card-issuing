@@ -1,4 +1,4 @@
-GOAL: JSON back-end for a fintech company actinga as an Issuer
+GOAL: JSON back-end for a fintech company acting as an Issuer
 
 USER STORIES:
 - Schema sends authorizing request on user payment and gets 200 OK if user have enough money or 403 otherwise.
@@ -90,11 +90,3 @@ WHAT WENT OUT OF SCOPE:
 - Monitorings: all 500 err, APIS, transactions quantity should be monitored
 - There is no support for transfering btw users accounts - only through schema. 
   Though core supports this, API is not implemented.
-
-ROADMAP:
-28.02:
-- views + management commands + tests
-01.03:
-- currency subsystem mock + tests + descriptions to transactions + tests refactoring
-02.03
-- core models refactoring + lint + grammar checks
