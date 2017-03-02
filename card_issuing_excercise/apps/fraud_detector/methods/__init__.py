@@ -1,0 +1,1 @@
+'''Stub for detection methods. Can be some ML, statistics or empirical'''

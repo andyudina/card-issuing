@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 
 from card_issuing_excercise.apps.currency_converter.converter import Converter
+from card_issuing_excercise.apps.fraud_detector.detector import FraudDetector
 from card_issuing_excercise.apps.processing.models import UserAccountsUnion, \
     Transaction
 from card_issuing_excercise.apps.processing.models.transactions import \
@@ -45,6 +46,9 @@ class SchemaWebHook(APIView):
             raise IssuerTransactionError(
                 Transaction.Errors.INVALID_FORMAT)
         request_data = request_serializer.data
+        if self._seems_like_fraud(request_data):
+            raise IssuerTransactionError(
+                Transaction.Errors.FRAUD_TRANSACTION)
         try:
             request_data = self._convert_amounts_currencies_inplace(
                 request_data)
@@ -119,6 +123,8 @@ class SchemaWebHook(APIView):
             Transaction.Errors.NOT_ENOUGH_MONEY: status.HTTP_403_FORBIDDEN,
             Transaction.Errors.INVALID_FORMAT: status.HTTP_400_BAD_REQUEST,
             Transaction.Errors.INVALID_USER: status.HTTP_406_NOT_ACCEPTABLE,
+            # pretend that ther is no money on fraud
+            Transaction.Errors.FRAUD_TRANSACTION: status.HTTP_403_FORBIDDEN,
             Transaction.Errors.INVALID_CONFIGURATION: status.HTTP_500_INTERNAL_SERVER_ERROR}
         DEFAULT_HTTP_STATUS = status.HTTP_400_BAD_REQUEST
         return CODE_TO_HTTP_STATUS.get(code, DEFAULT_HTTP_STATUS)
@@ -140,7 +146,9 @@ class SchemaWebHook(APIView):
         return amounts
 
     def _get_amount_in_inner_currency(self, amount, source_currency):
-        '''
-        Helper for currecny converting
-        '''
+        '''Helper for currecny converting'''
         return Converter().get_amount_for_save(amount, source_currency)
+
+    def _seems_like_fraud(self, transaction_info):
+        '''Shortcut for fraud check'''
+        return FraudDetector().check_is_fraud(**transaction_info)

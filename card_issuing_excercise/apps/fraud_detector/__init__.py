@@ -1,0 +1,1 @@
+'''Stub for "on-the-fly" fraud detection. Every transaction should pass through fraud detection'''

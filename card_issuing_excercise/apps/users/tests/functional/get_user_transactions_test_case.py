@@ -70,9 +70,7 @@ class GetUserTransactions(UserAPITestCase,
         response = self.get_user_transactions_by_request({'page': 1})
         transfer = self.presentment_transaction.transfers.\
             get(account_id=self.user_account.base_account.id)
-        self.assertDictEqual(to_dict(response.data),
-
-                             {
+        self.assertDictEqual(to_dict(response.data), {
             'count': 1,
             'next': None,
             'previous': None,

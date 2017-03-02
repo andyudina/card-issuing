@@ -5,10 +5,8 @@ import datetime
 from json import loads, dumps
 import time
 
-# TODO: names with datetime_to_timestamp should be symmetrical
 
-
-def date_from_ts(ts):
+def timestamp_to_datetime(ts):
     '''
     Shortcut for ts to datetime obj converting
     '''
@@ -28,7 +26,7 @@ def to_start_day_from_ts(ts):
     Get datetime of the beginning of the day.
     Works with timesatmps
     '''
-    date = date_from_ts(ts)
+    date = timestamp_to_datetime(ts)
     return to_start_day(date)
 
 
@@ -36,7 +34,7 @@ def is_in_future(ts):
     '''
     Checks if timestamp is in the future
     '''
-    return date_from_ts(ts) > datetime.datetime.now()
+    return timestamp_to_datetime(ts) > datetime.datetime.now()
 
 
 def datetime_to_timestamp(dt):
@@ -45,16 +43,13 @@ def datetime_to_timestamp(dt):
     '''
     return time.mktime(dt.timetuple())
 
-# TODO: refactor layout
-
-
 def almost_equal(value_1, value_2, accuracy=10**-4, precision=4):
     '''
     Helper for compairing decimals.
     Used in custom assertIn for unit tests
     '''
-    return abs(
-        round(value_1, precision) - round(value_2, precision)) < accuracy
+    diff = round(value_1, precision) - round(value_2, precision)
+    return abs(diff) < accuracy
 
 
 def to_dict(input_ordered_dict):

@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     'card_issuing_excercise.apps.apis',
     # handles currency convertations
     'card_issuing_excercise.apps.currency_converter',
+    # handles fraud detection
+    'card_issuing_excercise.apps.fraud_detector',   
     # handles all the money processing and interactions with the Schema
     'card_issuing_excercise.apps.processing',
     # generates unique sequences-- used in transactions

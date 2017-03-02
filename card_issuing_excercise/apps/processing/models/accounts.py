@@ -10,7 +10,7 @@ from card_issuing_excercise.apps.processing.models.transactions import \
     Transaction, \
     TRANSACTION_AUTHORIZATION_STATUS
 from card_issuing_excercise.apps.utils import \
-    date_from_ts, \
+    timestamp_to_datetime, \
     to_start_day_from_ts, \
     is_in_future
 from card_issuing_excercise.settings import AMOUNT_PRECISION_SETTINGS, \
@@ -291,7 +291,7 @@ class UserAccountsUnion(models.Model):
         if is_in_future(date_ts):
             return self.current_amounts_tuple
         start_day_date = to_start_day_from_ts(date_ts)
-        date = date_from_ts(date_ts)
+        date = timestamp_to_datetime(date_ts)
         if self.created_at > date:
             return (0, 0)
         if self.created_at > start_day_date:
@@ -311,7 +311,7 @@ class UserAccountsUnion(models.Model):
     def _get_amounts_for_date(self, start_day_date):
         '''
         Find amount for particular point at time.
-        Don't check weather they exists or not.
+        Don't check whether they exists or not.
         '''
         nearest_accounts = self.accounts.\
             filter(account_logs__date=start_day_date).\
@@ -355,7 +355,7 @@ class UserAccountsUnion(models.Model):
         for ts_key, filter_param in KWARGS_TO_FILTER_PARAMS.items():
             if not kwargs.get(ts_key):
                 continue
-            filter_params[filter_param] = date_from_ts(
+            filter_params[filter_param] = timestamp_to_datetime(
                 kwargs.get(ts_key))
         transfers = self.base_account.transfers.filter(**filter_params)
         transaction_ids = [
@@ -368,7 +368,7 @@ class UserAccountsUnion(models.Model):
                             queryset=transfers_for_display_qs)
         ).filter(id__in=transaction_ids).\
             exclude(status=TRANSACTION_AUTHORIZATION_STATUS).\
-            order_by('created_at')
+            order_by('-created_at')
 
 
 class Account(models.Model):
