@@ -1,8 +1,8 @@
 ## Test JSON back-end of a fintech company acting as an Issuer
 
 ### What can it do
-- Reserve requested sum from cardholder balance during authorization transaction
-- Deduct requested sum from cardholder balance during presentment transaction
+- Reserve requested sum from cardholder balance during the authorization transaction
+- Deduct requested sum from cardholder balance during the presentment transaction
 - Collect the Issuer revenue
 - Settle debts to the Schema
 - Rollback outdated authorization transactions
