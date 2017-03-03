@@ -41,3 +41,4 @@ Though core supports this, the API is not implemented.
   - more verbose amounts managements in tests
   ...
 
+- Packaging and Build & test & deploy automation.
