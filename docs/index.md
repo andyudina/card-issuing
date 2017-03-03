@@ -1,5 +1,5 @@
 ## Goal
-JSON back-end for a fintech company acting as an Issuer
+JSON back-end of a fintech company acting as an Issuer
 
 ## Contents
 - [User stories](/docs/user_stories.md)
