@@ -49,7 +49,8 @@
 - Success:
   - Code: 200 OK
   - Response stucture:
-  - *Example:*
+- *Example:*  
+
  ```json
     {
         "count": 1,
@@ -71,7 +72,7 @@
             ],
     }
 ```
-  - *Description:*
+- *Description:*  
       - count: number of transactions in specified time range (int)
       - next: next page if exists (str or null)
       - previous: previous page url if exists (str or null)
@@ -87,27 +88,27 @@
 - Errors:
   - 400 BAD REQUEST: Invalid request format
   - 403 FORBIDDEN: Non authorized or non authenticated user
-  - 404 NOT FOUND: Account with such id does not exist  
+  - 404 NOT FOUND: Account with such id does not exist
 
-  3. Balance for user
-    - Uri:    /user/(?P\<account_id\>\d+)/balance/
-    - Method: GET
-    - Params: 
-      - ts: int (can be null - return current balance then)
+3. Balance for user
+  - Uri:    /user/(?P\<account_id\>\d+)/balance/
+  - Method: GET
+  - Params: 
+    - ts: int (can be null - return current balance then)
 
 **Response**
 *Returns 200 OK and JSON for success, empty response with error code for error*
 - Success:
   - Code: 200 OK
   - Response structure
-  - *Example*
+- *Example*
 ```json
 {
   "available_amount": "91.01",
   "total_amount": "10.21"
 }
 ```
-  - *Description:*
+- *Description:*
       - available_amount: (string)
       - total_amount: available_amount + reserved_amount (string)
 - Errors:
