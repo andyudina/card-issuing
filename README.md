@@ -1,7 +1,14 @@
-## Test JSON back-end for a fintech company acting as an Issuer
+## Test JSON back-end of a fintech company acting as an Issuer
 
 ### What can it do
-[TODO]
+- Reserve requested sum from cardholder balance during authorization transaction
+- Deduct requested sum from cardholder balance during presentment transaction
+- Collect the Issuer revenue
+- Settle debts to the Schema
+- Rollback outdated authorization transactions
+- Load money directly to cardholder account
+- Show cardholder balance at specific point in time
+- Show cardholder transactions in specific time range
 
 For architecture details, installation tips and TODOES
 ###[Read the docs](/docs/index.md)
