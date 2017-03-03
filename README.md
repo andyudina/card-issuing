@@ -10,5 +10,5 @@
 - Show cardholder balance at specific point in time
 - Show cardholder transactions in specific time range
 
-For architecture details, installation tips and TODOs
+### For architecture details, installation tips and TODOs:
 ###[Read the docs](/docs/index.md)
